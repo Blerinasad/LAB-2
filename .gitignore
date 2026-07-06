@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables — KURRË mos i komito
+.env
+**/.env
+!**/.env.example
+
+# Build outputs
+dist/
+build/
+frontend/dist/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+venv/
+.venv/
+ml-service/venv/
+ml-service/saved_models/*.pkl
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Package locks (opsionale — lëri nëse doni reproducibility)
+# package-lock.json
