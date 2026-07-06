@@ -1,0 +1,12 @@
+// Controllers — eksporton të gjitha
+export { UserController } from "./user.controller.js";
+export { CategoryController } from "./category.controller.js";
+export { IngredientController } from "./ingredient.controller.js";
+export { InventoryController } from "./inventory.controller.js";
+export { RecipeController } from "./recipe.controller.js";
+export { MealPlanController } from "./meal-plan.controller.js";
+export { ShoppingListController } from "./shopping-list.controller.js";
+export { NotificationController } from "./notification.controller.js";
+export { ReportController } from "./report.controller.js";
+export { MarketplaceController } from "./marketplace.controller.js";
+export { MLController } from "./ml.controller.js";
