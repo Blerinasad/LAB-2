@@ -1,0 +1,30 @@
+.toolbar { display:flex; gap:12px; align-items:center; margin-bottom:14px; }
+.count   { font-size:11px; color:#9e9890; margin-bottom:16px; }
+:global(.dark) .count { color:#6b7260; }
+
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(210px,1fr)); gap:14px; }
+
+.invCard {
+  border-radius:6px; padding:14px 16px; transition:all .15s;
+  position:relative; overflow:hidden; cursor:pointer;
+  background:#ffffff; border:1px solid #e2ddd6;
+}
+:global(.dark) .invCard { background:#161713; border-color:#2a2d25; }
+.invCard:hover { border-color:#c5c0b8; transform:translateY(-1px); box-shadow:0 4px 16px rgba(0,0,0,.06); }
+:global(.dark) .invCard:hover { border-color:#3d4135; box-shadow:0 4px 16px rgba(0,0,0,.3); }
+
+.invBar  { position:absolute; top:0; left:0; right:0; height:3px; }
+.invTop  { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; margin-top:6px; }
+.invActions { display:flex; gap:4px; }
+
+.expiryChip { font-size:10px; font-weight:600; border:1px solid; border-radius:10px; padding:2px 8px; }
+
+.invName { font-size:13px; font-weight:500; margin-bottom:4px; color:#2a2520; }
+:global(.dark) .invName { color:#e8e4d9; }
+.invQty  { font-family:'Playfair Display',serif; font-size:24px; color:#c4622d; line-height:1; }
+.invUnit { font-size:12px; font-family:'JetBrains Mono',monospace; color:#9e9890; }
+:global(.dark) .invUnit { color:#6b7260; }
+.invMeta { display:flex; justify-content:space-between; font-size:10px; color:#9e9890; margin-top:6px; }
+:global(.dark) .invMeta { color:#6b7260; }
+.invDate { font-size:10px; color:#c5c0b8; margin-top:4px; }
+:global(.dark) .invDate { color:#3d4135; }

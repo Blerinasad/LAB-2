@@ -1,0 +1,48 @@
+.welcome { font-size:13px; color:#6b6560; margin-bottom:20px; }
+:global(.dark) .welcome { color:#6b7260; }
+.welcome strong { color:#2a2520; }
+:global(.dark) .welcome strong { color:#e8e4d9; }
+
+.alertBar {
+  background:rgba(196,98,45,.06); border:1px solid rgba(196,98,45,.2);
+  border-radius:6px; padding:12px 16px; margin-bottom:20px;
+  font-size:12px; color:#b5521f; display:flex; align-items:center; gap:8px;
+}
+:global(.dark) .alertBar { color:#e07240; }
+
+.statsGrid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
+.statCard {
+  border-radius:6px; padding:18px 20px; position:relative; overflow:hidden;
+  background:#ffffff; border:1px solid #e2ddd6;
+}
+:global(.dark) .statCard { background:#161713; border-color:#2a2d25; }
+.statCard::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--accent,#c4622d); }
+.statLabel { font-size:9px; letter-spacing:2px; text-transform:uppercase; color:#9e9890; margin-bottom:8px; }
+:global(.dark) .statLabel { color:#6b7260; }
+.statValue { font-family:'Playfair Display',serif; font-size:36px; color:#2a2520; line-height:1; }
+:global(.dark) .statValue { color:#e8e4d9; }
+.statSub   { font-size:10px; color:#9e9890; margin-top:5px; }
+:global(.dark) .statSub { color:#6b7260; }
+.statIcon  { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:30px; opacity:.06; pointer-events:none; color:#2a2520; }
+
+.grid2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+
+.topRow { margin-bottom:12px; }
+.topLabel { display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; }
+.topName  { color:#2a2520; }
+:global(.dark) .topName { color:#e8e4d9; }
+.topVal   { color:#c4622d; }
+
+.expiryRow { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid rgba(226,221,214,.6); }
+:global(.dark) .expiryRow { border-bottom-color:rgba(42,45,37,.5); }
+.expiryRow:last-child { border-bottom:none; }
+.expiryName { font-size:12px; color:#2a2520; margin-bottom:3px; }
+:global(.dark) .expiryName { color:#e8e4d9; }
+.expirySub  { font-size:10px; color:#9e9890; }
+:global(.dark) .expirySub { color:#6b7260; }
+.expiryDays { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; }
+
+@media (max-width:1100px) {
+  .statsGrid { grid-template-columns:repeat(2,1fr); }
+  .grid2     { grid-template-columns:1fr; }
+}
