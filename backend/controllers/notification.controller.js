@@ -1,4 +1,4 @@
-// notification.controller.js — thin controller, zero business logic
+// Notification.controller.js — thin controller, zero business logic
 import { NotificationService } from "../services/notification.service.js";
 
 export class NotificationController {

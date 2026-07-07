@@ -21,15 +21,15 @@
   content:''; position:absolute; top:0; left:0; right:0; height:3px;
   background: linear-gradient(90deg, #c4622d, #d4a843, #7a9e5a);
 }
-.logo      { text-align:center; margin-bottom:32px; }
+.logo { text-align:center; margin-bottom:32px; }
 .logoTitle { font-family:'Playfair Display',serif; font-size:28px; color:#c4622d; }
-.logoSub   { font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-top:5px; color:#6b6560; }
+.logoSub { font-size:10px; letter-spacing:2px; text-transform:uppercase; margin-top:5px; color:#6b6560; }
 :global(.dark) .logoSub { color:#6b7260; }
 .error {
   background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.3);
   color: #f87171; border-radius: 6px; padding: 10px 14px; font-size:12px; margin-bottom:16px;
 }
-.group     { margin-bottom:14px; }
+.group { margin-bottom:14px; }
 .label {
   display:block; font-size:10px; letter-spacing:1.5px; text-transform:uppercase;
   margin-bottom:5px; color:#6b6560;
@@ -49,7 +49,7 @@
 :global(.dark) .hint { background:#1e201a; border-color:#2a2d25; }
 .hintLabel { display:block; font-size:9px; letter-spacing:2px; text-transform:uppercase; margin-bottom:4px; color:#9e9890; }
 :global(.dark) .hintLabel { color:#3d4135; }
-.hintVal   { font-size:11px; color:#6b6560; }
+.hintVal { font-size:11px; color:#6b6560; }
 :global(.dark) .hintVal { color:#6b7260; }
 .themeBtn {
   position:absolute; top:14px; right:14px; background:none; border:none;

@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/auth.context.jsx";
-import ForgotPassword from "./forgot-password.jsx";
+import ForgotPassword from "./ForgotPassword.jsx";
 
 const DEMO_ACCOUNTS = [
-  { label:"Admin",   email:"admin@smartkitchen.com",   password:"Password123!", color:"bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" },
-  { label:"User 1",  email:"artan@smartkitchen.com",   password:"Password123!", color:"bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" },
-  { label:"User 2",  email:"blerta@smartkitchen.com",  password:"Password123!", color:"bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" },
+  { label:"Admin", email:"admin@smartkitchen.com", password:"Password123!", color:"bg-purple-100 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300" },
+  { label:"Manager", email:"artan@smartkitchen.com", password:"Password123!", color:"bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" },
   { label:"Courier", email:"courier@smartkitchen.com", password:"Password123!", color:"bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" },
+  { label:"User", email:"blerta@smartkitchen.com", password:"Password123!", color:"bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" },
 ];
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const [form,       setForm] = useState({ email: "", password: "" });
-  const [error,      setError] = useState("");
-  const [loading,    setLoading] = useState(false);
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
 
   const onChange = (e) => setForm((p) => ({ ...p, [e.target.name]: e.target.value }));

@@ -1,4 +1,4 @@
-// inventory.controller.js — thin controller, zero business logic
+// Inventory.controller.js — thin controller, zero business logic
 import { InventoryService } from "../services/inventory.service.js";
 
 export class InventoryController {

@@ -5,48 +5,58 @@ import { useAuth } from "../context/auth.context.jsx";
 import { initials } from "../utils/helpers.js";
 import { disconnectSocket } from "../services/socket.js";
 import api from "../services/api.js";
+import { ROLE_NAV, primaryRole } from "../config/roles.js";
 
-const NAV = [
-  { key:"dashboard",     label:"Dashboard",       section:"main",   icon:<IcoDash /> },
-  { key:"inventory",     label:"Inventari",       section:"main",   icon:<IcoInv />, roles:["Admin","Manager","User"] },
-  { key:"photoscan",     label:"PhotoScan AI",    section:"main",   icon:<IcoScan />, roles:["Admin","Manager","User"] },
-  { key:"recipes",       label:"Recetat",         section:"main",   icon:<IcoRec />, roles:["Admin","Manager","User"] },
-  { key:"meal-plans",    label:"Planet Javore",   section:"main",   icon:<IcoPlan />, roles:["Admin","Manager","User"] },
-  { key:"shopping",      label:"Lista Blerje",    section:"main",   icon:<IcoShop />, roles:["Admin","Manager","User"] },
-  { key:"marketplace",   label:"Marketplace",     section:"main",   icon:<IcoShop /> },
-  { key:"notifications", label:"Njoftimet",       section:"system", icon:<IcoBell />, badge:true },
-  { key:"reports",       label:"Raportet",        section:"system", icon:<IcoRep />, roles:["Admin","Manager","User"] },
-  { key:"settings",      label:"Settings",        section:"system", icon:<IcoSettings />, roles:["Admin"] },
-  { key:"ml",            label:"Machine Learning",section:"system", icon:<IcoML />, roles:["Admin","Manager","User"] },
-  { key:"users",         label:"Përdoruesit",     section:"admin",  icon:<IcoUser />, roles:["Admin"] },
-];
-
+// Titujt e faqeve (topbar)
 const TITLES = {
-  "dashboard": "Dashboard",
+  "dashboard": "Paneli",
   "inventory": "Inventari",
-  "photoscan": "PhotoScan AI",
+  "photoscan": "PhotoScan",
   "recipes": "Recetat",
   "meal-plans": "Planet Javore",
-  "shopping": "Lista e Blerjeve",
+  "shopping": "Listat e Blerjes",
   "marketplace": "Marketplace",
+  "activities": "Aktivitetet",
+  "deliveries": "Dorëzimet",
   "notifications": "Njoftimet",
   "reports": "Raportet",
-  "settings": "Settings",
-  "ml": "Machine Learning",
-  "users": "Menaxho Përdoruesit",
+  "settings": "Cilësimet",
+  "ml": "Rekomandime AI",
+  "users": "Përdoruesit",
 };
 
-function IcoScan()  { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/></svg>; }
-function IcoDash()  { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 8a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1v-4zm8-8a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V4zm0 8a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" clipRule="evenodd"/></svg>; }
-function IcoInv()   { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M4 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H4zm3 4h6v2H7V7zm0 4h6v2H7v-2z"/></svg>; }
-function IcoRec()   { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>; }
-function IcoPlan()  { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/></svg>; }
-function IcoShop()  { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C4.57 11.036 5.051 12 6 12h12a1 1 0 100-2H6.477l.61-.61A.997.997 0 007 9h10l1-4H5.28L4.97 3.758A1 1 0 004 3H3zm10 13a1 1 0 100 2 1 1 0 000-2zM7 16a1 1 0 100 2 1 1 0 000-2z"/></svg>; }
-function IcoBell()  { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>; }
-function IcoRep()   { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>; }
-function IcoSettings() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="m11.6 2 .4 2a6 6 0 0 1 1.5.9l1.9-.7 1.6 2.7-1.5 1.4a6 6 0 0 1 0 1.7l1.5 1.4-1.6 2.7-1.9-.7a6 6 0 0 1-1.5.9l-.4 2H8.4l-.4-2a6 6 0 0 1-1.5-.9l-1.9.7L3 11.4l1.5-1.4a6 6 0 0 1 0-1.7L3 6.9l1.6-2.7 1.9.7A6 6 0 0 1 8 4l.4-2h3.2ZM10 7.4A2.6 2.6 0 1 0 10 12.6 2.6 2.6 0 0 0 10 7.4Z"/></svg>; }
-function IcoML()    { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd"/></svg>; }
-function IcoUser()  { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>; }
+function IcoScan() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M4 5a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2h-1.586a1 1 0 01-.707-.293l-1.121-1.121A2 2 0 0011.172 3H8.828a2 2 0 00-1.414.586L6.293 4.707A1 1 0 015.586 5H4zm6 9a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd"/></svg>; }
+function IcoDash() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 8a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H4a1 1 0 01-1-1v-4zm8-8a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V4zm0 8a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" clipRule="evenodd"/></svg>; }
+function IcoInv() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M4 3a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V4a1 1 0 00-1-1H4zm3 4h6v2H7V7zm0 4h6v2H7v-2z"/></svg>; }
+function IcoRec() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>; }
+function IcoPlan() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/></svg>; }
+function IcoShop() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C4.57 11.036 5.051 12 6 12h12a1 1 0 100-2H6.477l.61-.61A.997.997 0 007 9h10l1-4H5.28L4.97 3.758A1 1 0 004 3H3zm10 13a1 1 0 100 2 1 1 0 000-2zM7 16a1 1 0 100 2 1 1 0 000-2z"/></svg>; }
+function IcoBell() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>; }
+function IcoRep() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"/></svg>; }
+function IcoML() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd"/></svg>; }
+function IcoUser() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>; }
+function IcoStore() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M4 3h12l1 4a2 2 0 01-4 .3A2 2 0 0110 7a2 2 0 01-3 .3A2 2 0 013 7l1-4zm0 6.7V16a1 1 0 001 1h4v-4h2v4h4a1 1 0 001-1V9.7a3.3 3.3 0 01-3.5-.5 3.3 3.3 0 01-4 0 3.3 3.3 0 01-3.5.5z"/></svg>; }
+function IcoTruck() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M2 5a1 1 0 011-1h8a1 1 0 011 1v2h2.5a1 1 0 01.8.4l2.5 3.3a1 1 0 01.2.6V14a1 1 0 01-1 1h-1a2 2 0 11-4 0H8a2 2 0 11-4 0H3a1 1 0 01-1-1V5zm10 4h4l-1.8-2H12v2z"/></svg>; }
+function IcoGear() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M11.5 2.1l.4 1.9a6 6 0 011.5.9l1.9-.7 1.5 2.6-1.5 1.3a6 6 0 010 1.8l1.5 1.3-1.5 2.6-1.9-.7a6 6 0 01-1.5.9l-.4 1.9h-3l-.4-1.9a6 6 0 01-1.5-.9l-1.9.7L2.6 12l1.5-1.3a6 6 0 010-1.8L2.6 7.6l1.5-2.6 1.9.7a6 6 0 011.5-.9l.4-1.9h3zM10 7.5A2.5 2.5 0 1010 12.5 2.5 2.5 0 0010 7.5z" clipRule="evenodd"/></svg>; }
+function IcoActivity() { return <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path d="M3 10h3l2-5 4 10 2-5h3v1.7h-1.9L12 17 8 7l-1 4.7H3V10Z"/></svg>; }
+
+// Map route key -> ikonë (sidebar-i ndërtohet nga roles.js)
+const ICONS = {
+  dashboard: <IcoDash />,
+  inventory: <IcoInv />,
+  photoscan: <IcoScan />,
+  recipes: <IcoRec />,
+  "meal-plans": <IcoPlan />,
+  shopping: <IcoShop />,
+  marketplace: <IcoStore />,
+  activities: <IcoActivity />,
+  deliveries: <IcoTruck />,
+  notifications: <IcoBell />,
+  reports: <IcoRep />,
+  settings: <IcoGear />,
+  ml: <IcoML />,
+  users: <IcoUser />,
+};
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -89,11 +99,8 @@ export default function Layout() {
     }
   };
 
-  const grouped = { main:[], system:[], admin:[] };
-  NAV.forEach((n) => {
-    const roles = user?.roles || [];
-    if (!n.roles || n.roles.some((role) => roles.includes(role))) grouped[n.section]?.push(n);
-  });
+  // Sidebar sipas rolit (nga roles.js)
+  const navSections = ROLE_NAV[primaryRole(user)] || [];
 
   const isActive = (key) => location.pathname === `/${key}`;
 
@@ -138,36 +145,34 @@ export default function Layout() {
           </div>
         </div>
 
-        {/* Nav */}
+        {/* Nav — sipas rolit */}
         <nav className="flex-1 overflow-y-auto py-3 px-1">
-          {["main","system","admin"].map((sec) =>
-            grouped[sec]?.length > 0 ? (
-              <div key={sec} className="mb-1">
-                <p className="px-4 pt-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-stone-300 dark:text-stone-700">
-                  {{ main:"Kryesor", system:"Sistemi", admin:"Admin" }[sec]}
-                </p>
-                {grouped[sec].map((n) => (
-                  <button
-                    key={n.key}
-                    onClick={() => handleNav(n.key)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12.5px] font-medium transition-all mb-0.5 ${
-                      isActive(n.key)
-                        ? "bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400"
-                        : "text-stone-600 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-white/[0.05]"
-                    }`}
-                  >
-                    <span className="flex-shrink-0 opacity-80">{n.icon}</span>
-                    <span className="flex-1 text-left">{n.label}</span>
-                    {n.badge && unread > 0 && (
-                      <span className="ml-auto bg-orange-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
-                        {unread > 99 ? "99+" : unread}
-                      </span>
-                    )}
-                  </button>
-                ))}
-              </div>
-            ) : null
-          )}
+          {navSections.map((sec) => (
+            <div key={sec.section} className="mb-1">
+              <p className="px-4 pt-3 pb-1.5 text-[10px] font-semibold uppercase tracking-widest text-stone-300 dark:text-stone-700">
+                {sec.section}
+              </p>
+              {sec.items.map((n) => (
+                <button
+                  key={n.key}
+                  onClick={() => handleNav(n.key)}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[12.5px] font-medium transition-all mb-0.5 ${
+                    isActive(n.key)
+                      ? "bg-orange-50 text-orange-600 dark:bg-orange-950/40 dark:text-orange-400"
+                      : "text-stone-600 hover:bg-stone-100 dark:text-stone-400 dark:hover:bg-white/[0.05]"
+                  }`}
+                >
+                  <span className="flex-shrink-0 opacity-80">{ICONS[n.key]}</span>
+                  <span className="flex-1 text-left">{n.label}</span>
+                  {n.badge && unread > 0 && (
+                    <span className="ml-auto bg-orange-500 text-white text-[10px] font-bold rounded-full px-1.5 py-0.5 min-w-[18px] text-center">
+                      {unread > 99 ? "99+" : unread}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </div>
+          ))}
         </nav>
 
         {/* Footer */}

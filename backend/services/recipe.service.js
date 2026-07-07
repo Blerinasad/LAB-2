@@ -1,5 +1,10 @@
 import { db } from "../config/db.js";
 
+function normalizeUnit(unit) {
+  const normalized = unit === "cope" ? "piece" : unit;
+  return ["piece","g","kg","ml","l","pack","box","bottle","can","slice"].includes(normalized) ? normalized : "piece";
+}
+
 export class RecipeService {
 
   static async getAll({ search, difficulty, meal_type, page=1, limit=20 } = {}) {
@@ -7,7 +12,7 @@ export class RecipeService {
     const params = [];
     if (search) { where.push("MATCH(r.title) AGAINST(? IN BOOLEAN MODE)"); params.push(`${search}*`); }
     if (difficulty) { where.push("r.difficulty=?"); params.push(difficulty); }
-    if (meal_type) { where.push("r.meal_type=?");  params.push(meal_type); }
+    if (meal_type) { where.push("r.meal_type=?"); params.push(meal_type); }
 
     const offset = (Number(page)-1) * Number(limit);
     const [[{total}]] = await db.query(`SELECT COUNT(*) AS total FROM Recipes r WHERE ${where.join(" AND ")}`, params);
@@ -62,13 +67,16 @@ export class RecipeService {
       if (!ing.ingredient_id || !ing.quantity || !ing.unit) continue;
       await db.query(
         "INSERT INTO RecipeIngredients (recipe_id,ingredient_id,quantity,unit,is_optional) VALUES (?,?,?,?,?)",
-        [result.insertId, ing.ingredient_id, ing.quantity, ing.unit, ing.is_optional||0]);
+        [result.insertId, ing.ingredient_id, ing.quantity, normalizeUnit(ing.unit), ing.is_optional||0]);
     }
     return this.getById(result.insertId);
   }
 
   static async update(id, userId, data) {
     const recipe = await this.getById(id);
+    if (Number(recipe.created_by || 0) !== Number(userId)) {
+      throw { status: 403, message: "Mund të ndryshosh vetëm recetat e tua" };
+    }
     const fields = [];
     const params = [];
     ["title","description","instructions","prep_time_min","cook_time_min","servings","difficulty","meal_type","is_public"].forEach(f => {
@@ -81,8 +89,11 @@ export class RecipeService {
     return this.getById(id);
   }
 
-  static async delete(id) {
-    await this.getById(id);
+  static async delete(id, userId) {
+    const recipe = await this.getById(id);
+    if (Number(recipe.created_by || 0) !== Number(userId)) {
+      throw { status: 403, message: "Mund të fshish vetëm recetat e tua" };
+    }
     await db.query("DELETE FROM RecipeIngredients WHERE recipe_id=?", [id]);
     await db.query("DELETE FROM Recipes WHERE id=?", [id]);
   }

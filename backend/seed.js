@@ -1,7 +1,7 @@
 // ============================================================
-//  seed.js — Ekzekuto: node seed.js
-//  Gjeneron hash LIVE me bcrypt dhe i fut në DB
-//  Tabelat duhet të jenë krijuar nga database/01_schema.sql
+// seed.js — Ekzekuto: node seed.js
+// Gjeneron hash LIVE me bcrypt dhe i fut në DB
+// Tabelat duhet të jenë krijuar nga database/01_schema.sql
 // ============================================================
 import bcrypt from "bcrypt";
 import { db } from "./config/db.js";
@@ -12,24 +12,13 @@ const ROUNDS = Number(process.env.SALT_ROUNDS || 12);
 
 async function run() {
   console.log("\nSmart Kitchen — Seed Users\n");
-  const demoPasswordHash = await bcrypt.hash("Password123!", ROUNDS);
+  const hAll = await bcrypt.hash("Password123!", ROUNDS);
   console.log("Hashët u gjeneruan.");
 
   await db.query("SET FOREIGN_KEY_CHECKS = 0");
   await db.query("DELETE FROM UserRoles");
   await db.query("DELETE FROM RefreshTokens");
-  await db.query(
-    "UPDATE Users SET password_hash=? WHERE email IN (?,?,?,?,?,?)",
-    [
-      demoPasswordHash,
-      "admin@smartkitchen.com",
-      "artan@smartkitchen.com",
-      "blerta@smartkitchen.com",
-      "driton@smartkitchen.com",
-      "fjolla@smartkitchen.com",
-      "courier@smartkitchen.com",
-    ]
-  );
+  await db.query("UPDATE Users SET password_hash=? WHERE id IN (1,2,3,4,5,6)", [hAll]);
   await db.query("SET FOREIGN_KEY_CHECKS = 1");
 
   // Kontroll
@@ -65,11 +54,13 @@ async function run() {
   );
 
   console.log(`
-Login:
-  admin@smartkitchen.com   / Password123!
-  artan@smartkitchen.com   / Password123!
-  blerta@smartkitchen.com  / Password123!
-  courier@smartkitchen.com / Password123!
+Login (të gjitha me të njëjtin fjalëkalim: Password123!):
+  admin@smartkitchen.com / Password123! (Admin)
+  artan@smartkitchen.com / Password123! (Manager)
+  blerta@smartkitchen.com / Password123! (User)
+  driton@smartkitchen.com / Password123! (User)
+  fjolla@smartkitchen.com / Password123! (User)
+  courier@smartkitchen.com / Password123! (Courier)
 `);
   process.exit(0);
 }

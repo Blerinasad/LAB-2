@@ -1,22 +1,22 @@
 # ============================================================
-#  classifiers.py
-#  Minimum 4 classifiers + Neural Network + Clustering
-#  Requirement: Lab Course ML — UBT 2025–2026
+# classifiers.py
+# Minimum 4 classifiers + Neural Network + Clustering
+# Requirement: Lab Course ML — UBT 2025–2026
 #
-#  Modelet:
-#    1. Logistic Regression
-#    2. KNN (K-Nearest Neighbors)
-#    3. Random Forest Classifier
-#    4. Neural Network (MLPClassifier — sklearn)
-#    5. KMeans Clustering
+# Modelet:
+# 1. Logistic Regression
+# 2. KNN (K-Nearest Neighbors)
+# 3. Random Forest Classifier
+# 4. Neural Network (MLPClassifier — sklearn)
+# 5. KMeans Clustering
 #
-#  Task: Klasifiko rrezikun e humbjes së ushqimit
-#        Input:  category_id, shelf_life_days, quantity, days_until_expiry
-#        Output: risk_level  (0=low, 1=medium, 2=high)
+# Task: Klasifiko rrezikun e humbjes së ushqimit
+# Input: category_id, shelf_life_days, quantity, days_until_expiry
+# Output: risk_level (0=low, 1=medium, 2=high)
 #
-#  Endpoint: GET /ml/classifiers/compare
-#            GET /ml/classifiers/predict
-#            GET /ml/clustering/{user_id}
+# Endpoint: GET /ml/classifiers/compare
+# GET /ml/classifiers/predict
+# GET /ml/clustering/{user_id}
 # ============================================================
 
 import os
@@ -43,8 +43,8 @@ from config.db import run_query_to_df
 MODELS_DIR = os.path.join(os.path.dirname(__file__), "..", "saved_models")
 os.makedirs(MODELS_DIR, exist_ok=True)
 
-SCALER_PATH  = os.path.join(MODELS_DIR, "clf_scaler.pkl")
-KMEANS_PATH  = os.path.join(MODELS_DIR, "kmeans_model.pkl")
+SCALER_PATH = os.path.join(MODELS_DIR, "clf_scaler.pkl")
+KMEANS_PATH = os.path.join(MODELS_DIR, "kmeans_model.pkl")
 
 
 # ── Data generation ────────────────────────────────────────
@@ -61,7 +61,7 @@ def _generate_dataset(n=2000, seed=42):
         q = """
             SELECT
                 i.category_id,
-                COALESCE(i.shelf_life_days, 14)   AS shelf_life_days,
+                COALESCE(i.shelf_life_days, 14) AS shelf_life_days,
                 inv.quantity,
                 DATEDIFF(inv.expiry_date, CURDATE()) AS days_until_expiry
             FROM InventoryItems inv
@@ -88,17 +88,17 @@ def _generate_dataset(n=2000, seed=42):
     # Dataset sintetik
     rows = []
     for _ in range(n):
-        cat        = np.random.randint(1, 7)
+        cat = np.random.randint(1, 7)
         shelf_life = np.random.choice([3, 5, 7, 14, 30, 90, 180, 365])
-        quantity   = round(np.random.uniform(0.1, 10.0), 2)
-        days_left  = np.random.randint(-5, 60)
+        quantity = round(np.random.uniform(0.1, 10.0), 2)
+        days_left = np.random.randint(-5, 60)
 
         if days_left <= 2:
-            risk = 2   # high
+            risk = 2 # high
         elif days_left <= 7:
-            risk = 1   # medium
+            risk = 1 # medium
         else:
-            risk = 0   # low
+            risk = 0 # low
 
         rows.append({
             "category_id": cat,
@@ -111,8 +111,8 @@ def _generate_dataset(n=2000, seed=42):
 
 
 FEATURE_COLS = ["category_id", "shelf_life_days", "quantity", "days_until_expiry"]
-TARGET_COL   = "risk_level"
-RISK_LABELS  = {0: "low", 1: "medium", 2: "high"}
+TARGET_COL = "risk_level"
+RISK_LABELS = {0: "low", 1: "medium", 2: "high"}
 
 
 # ── Train & Evaluate all classifiers ──────────────────────
@@ -122,15 +122,15 @@ def train_and_compare():
     kthon metrics të plota dhe confusion matrix.
     """
     df = _generate_dataset()
-    X  = df[FEATURE_COLS].values
-    y  = df[TARGET_COL].values
+    X = df[FEATURE_COLS].values
+    y = df[TARGET_COL].values
 
     # Feature selection — SelectKBest
     selector = SelectKBest(f_classif, k=4)
-    X_sel    = selector.fit_transform(X, y)
+    X_sel = selector.fit_transform(X, y)
 
     # Scale
-    scaler   = StandardScaler()
+    scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X_sel)
     joblib.dump(scaler, SCALER_PATH)
 
@@ -140,21 +140,21 @@ def train_and_compare():
 
     # ── Logistic Regression ──────────────────────────────
     lr_params = {"C": [0.01, 0.1, 1, 10], "max_iter": [200]}
-    lr_gs     = GridSearchCV(LogisticRegression(random_state=42), lr_params, cv=5, scoring="f1_weighted", n_jobs=-1)
+    lr_gs = GridSearchCV(LogisticRegression(random_state=42), lr_params, cv=5, scoring="f1_weighted", n_jobs=-1)
     lr_gs.fit(X_train, y_train)
-    lr_best   = lr_gs.best_estimator_
+    lr_best = lr_gs.best_estimator_
 
     # ── KNN ──────────────────────────────────────────────
     knn_params = {"n_neighbors": [3, 5, 7, 11], "weights": ["uniform", "distance"]}
-    knn_gs     = GridSearchCV(KNeighborsClassifier(), knn_params, cv=5, scoring="f1_weighted", n_jobs=-1)
+    knn_gs = GridSearchCV(KNeighborsClassifier(), knn_params, cv=5, scoring="f1_weighted", n_jobs=-1)
     knn_gs.fit(X_train, y_train)
-    knn_best   = knn_gs.best_estimator_
+    knn_best = knn_gs.best_estimator_
 
     # ── Random Forest ────────────────────────────────────
     rf_params = {"n_estimators": [50, 100], "max_depth": [None, 10, 20]}
-    rf_gs     = GridSearchCV(RandomForestClassifier(random_state=42), rf_params, cv=5, scoring="f1_weighted", n_jobs=-1)
+    rf_gs = GridSearchCV(RandomForestClassifier(random_state=42), rf_params, cv=5, scoring="f1_weighted", n_jobs=-1)
     rf_gs.fit(X_train, y_train)
-    rf_best   = rf_gs.best_estimator_
+    rf_best = rf_gs.best_estimator_
 
     # ── Neural Network (MLPClassifier) ───────────────────
     nn_params = {
@@ -162,7 +162,7 @@ def train_and_compare():
         "alpha": [0.001, 0.01],
         "max_iter": [300],
     }
-    nn_gs   = GridSearchCV(MLPClassifier(random_state=42), nn_params, cv=5, scoring="f1_weighted", n_jobs=-1)
+    nn_gs = GridSearchCV(MLPClassifier(random_state=42), nn_params, cv=5, scoring="f1_weighted", n_jobs=-1)
     nn_gs.fit(X_train, y_train)
     nn_best = nn_gs.best_estimator_
 
@@ -180,12 +180,12 @@ def train_and_compare():
     for name, (model, best_params) in models.items():
         y_pred = model.predict(X_test)
 
-        acc  = round(float(accuracy_score(y_test, y_pred)), 4)
+        acc = round(float(accuracy_score(y_test, y_pred)), 4)
         prec = round(float(precision_score(y_test, y_pred, average="weighted", zero_division=0)), 4)
-        rec  = round(float(recall_score(y_test, y_pred, average="weighted", zero_division=0)), 4)
-        f1   = round(float(f1_score(y_test, y_pred, average="weighted", zero_division=0)), 4)
-        cm   = confusion_matrix(y_test, y_pred).tolist()
-        cv   = round(float(cross_val_score(model, X_scaled, y, cv=5, scoring="f1_weighted").mean()), 4)
+        rec = round(float(recall_score(y_test, y_pred, average="weighted", zero_division=0)), 4)
+        f1 = round(float(f1_score(y_test, y_pred, average="weighted", zero_division=0)), 4)
+        cm = confusion_matrix(y_test, y_pred).tolist()
+        cv = round(float(cross_val_score(model, X_scaled, y, cv=5, scoring="f1_weighted").mean()), 4)
 
         results[name] = {
             "accuracy": acc,
@@ -198,7 +198,7 @@ def train_and_compare():
         }
 
         if f1 > best_f1:
-            best_f1         = f1
+            best_f1 = f1
             best_model_name = name
             joblib.dump(model, os.path.join(MODELS_DIR, "best_classifier.pkl"))
 
@@ -234,11 +234,11 @@ def predict_risk(category_id: int, shelf_life_days: int, quantity: float, days_u
     if not os.path.exists(clf_path) or not os.path.exists(SCALER_PATH):
         train_and_compare()
 
-    clf    = joblib.load(clf_path)
+    clf = joblib.load(clf_path)
     scaler = joblib.load(SCALER_PATH)
 
     X = scaler.transform([[category_id, shelf_life_days, quantity, days_until_expiry]])
-    pred  = int(clf.predict(X)[0])
+    pred = int(clf.predict(X)[0])
     proba = clf.predict_proba(X)[0].tolist() if hasattr(clf, "predict_proba") else []
 
     return {
@@ -263,12 +263,12 @@ def cluster_user_behavior(user_id: int, n_clusters: int = 3):
         q = f"""
             SELECT
                 cl.ingredient_id,
-                i.name             AS ingredient_name,
+                i.name AS ingredient_name,
                 i.category_id,
-                SUM(cl.quantity_used)  AS total_consumed,
-                COUNT(cl.id)           AS consumption_count,
-                COALESCE(SUM(wl.quantity_wasted), 0)  AS total_wasted,
-                COALESCE(COUNT(wl.id), 0)             AS waste_count
+                SUM(cl.quantity_used) AS total_consumed,
+                COUNT(cl.id) AS consumption_count,
+                COALESCE(SUM(wl.quantity_wasted), 0) AS total_wasted,
+                COALESCE(COUNT(wl.id), 0) AS waste_count
             FROM ConsumptionLog cl
             JOIN Ingredients i ON i.id = cl.ingredient_id
             LEFT JOIN WasteLog wl ON wl.ingredient_id = cl.ingredient_id
@@ -297,10 +297,10 @@ def cluster_user_behavior(user_id: int, n_clusters: int = 3):
         })
 
     features = ["total_consumed", "consumption_count", "total_wasted", "waste_count"]
-    X_raw    = df[features].values.astype(float)
+    X_raw = df[features].values.astype(float)
 
     scaler = StandardScaler()
-    X      = scaler.fit_transform(X_raw)
+    X = scaler.fit_transform(X_raw)
 
     k = min(n_clusters, len(df))
     km = KMeans(n_clusters=k, random_state=42, n_init=10)
@@ -336,7 +336,7 @@ def cluster_user_behavior(user_id: int, n_clusters: int = 3):
 def _cluster_label(grp):
     """Emërto clusterin bazuar në karakteristikat e tij."""
     ratio = grp["total_wasted"].sum() / max(grp["total_consumed"].sum(), 0.001)
-    freq  = grp["consumption_count"].mean()
+    freq = grp["consumption_count"].mean()
     if ratio > 0.25:
         return "Waste-Heavy Group"
     if freq > 8:

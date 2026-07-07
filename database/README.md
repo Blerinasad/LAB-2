@@ -2,21 +2,21 @@
 
 ## Ekzekuto në rend
 
-1. `01_schema.sql` — Krijon 26 tabelat
+1. `01_schema.sql` — Krijon 29 tabelat
 2. `02_seed.sql` — Seed data (roles, users, ingredients, recipes...)
 3. `node seed.js` (nga backend/) — Gjeneron hash bcrypt reale
 
-## Tabela (26 total)
+## Tabela (29 total)
 
 ### 10 të detyrueshme
 Users, Roles, UserRoles, Permissions, RolePermissions, RefreshTokens,
 AuditLogs, Notifications, Settings, Files
 
-### 16 domain
+### 19 domain
 Categories, Ingredients, NutritionInfo, InventoryItems, ExpiryAlerts,
 Recipes, RecipeIngredients, UserPreferences, ConsumptionLog, WasteLog,
 MealPlans, MealPlanDays, ShoppingLists, ShoppingListItems,
-Stores, RecipeRatings + StoreOrders, StoreOrderItems, StoreProductPrices (migration)
+Stores, RecipeRatings, StoreOrders, StoreOrderItems, StoreProductPrices
 
 ## MySQL Workbench
 

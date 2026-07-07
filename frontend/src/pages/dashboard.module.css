@@ -21,28 +21,28 @@
 :global(.dark) .statLabel { color:#6b7260; }
 .statValue { font-family:'Playfair Display',serif; font-size:36px; color:#2a2520; line-height:1; }
 :global(.dark) .statValue { color:#e8e4d9; }
-.statSub   { font-size:10px; color:#9e9890; margin-top:5px; }
+.statSub { font-size:10px; color:#9e9890; margin-top:5px; }
 :global(.dark) .statSub { color:#6b7260; }
-.statIcon  { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:30px; opacity:.06; pointer-events:none; color:#2a2520; }
+.statIcon { position:absolute; right:14px; top:50%; transform:translateY(-50%); font-size:30px; opacity:.06; pointer-events:none; color:#2a2520; }
 
 .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 
 .topRow { margin-bottom:12px; }
 .topLabel { display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; }
-.topName  { color:#2a2520; }
+.topName { color:#2a2520; }
 :global(.dark) .topName { color:#e8e4d9; }
-.topVal   { color:#c4622d; }
+.topVal { color:#c4622d; }
 
 .expiryRow { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid rgba(226,221,214,.6); }
 :global(.dark) .expiryRow { border-bottom-color:rgba(42,45,37,.5); }
 .expiryRow:last-child { border-bottom:none; }
 .expiryName { font-size:12px; color:#2a2520; margin-bottom:3px; }
 :global(.dark) .expiryName { color:#e8e4d9; }
-.expirySub  { font-size:10px; color:#9e9890; }
+.expirySub { font-size:10px; color:#9e9890; }
 :global(.dark) .expirySub { color:#6b7260; }
 .expiryDays { font-family:'Playfair Display',serif; font-size:16px; font-weight:700; }
 
 @media (max-width:1100px) {
   .statsGrid { grid-template-columns:repeat(2,1fr); }
-  .grid2     { grid-template-columns:1fr; }
+  .grid2 { grid-template-columns:1fr; }
 }

@@ -4,12 +4,12 @@ export class DashboardRepository {
   static async getSummaryParts(userId, includeAdmin) {
     const [[inventory]] = await db.query(`
       SELECT
-        COUNT(*)                                             AS total_items,
-        SUM(quantity)                                        AS total_quantity,
-        SUM(expiry_date < CURDATE())                         AS expired,
+        COUNT(*) AS total_items,
+        SUM(quantity) AS total_quantity,
+        SUM(expiry_date < CURDATE()) AS expired,
         SUM(DATEDIFF(expiry_date,CURDATE()) BETWEEN 0 AND 3) AS expiring_soon,
         SUM(DATEDIFF(expiry_date,CURDATE()) BETWEEN 0 AND 7) AS expiring_week,
-        SUM(quantity < 0.5)                                  AS low_stock
+        SUM(quantity < 0.5) AS low_stock
       FROM InventoryItems WHERE user_id=?`, [userId]);
 
     const [[recipes]] = await db.query(

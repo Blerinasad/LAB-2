@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Badge, Card, Empty, Progress, Spinner, Tabs } from "../components/ui.jsx";
 import api from "../services/api.js";
+import { normalizeApiList } from "../utils/apiData.js";
 
 const RISK_COLOR = { low: "sage", medium: "gold", high: "danger" };
 const PREF_COLOR = { Standard: "ash", Vegetarian: "sage", "Gluten-Free": "gold", Keto: "copper" };
@@ -54,7 +55,7 @@ function BarMetric({ label, value, color = "#f97316" }) {
 }
 
 function ConfMatrix({ matrix, labels = ["Low", "Med", "High"] }) {
-  if (!matrix?.length) return null;
+  if (!Array.isArray(matrix) || !matrix.length) return null;
   return (
     <div className="mt-4">
       <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-stone-400 dark:text-stone-600">Confusion matrix</p>
@@ -71,7 +72,7 @@ function ConfMatrix({ matrix, labels = ["Low", "Med", "High"] }) {
               {matrix.map((row, i) => (
                 <tr key={labels[i]}>
                   <th className="border-t border-stone-100 p-2 font-semibold text-stone-400 dark:border-white/[0.05]">{labels[i]}</th>
-                  {row.map((cell, j) => (
+                  {(Array.isArray(row) ? row : []).map((cell, j) => (
                   <td key={`${i}-${j}`} className={`border-l border-t border-stone-100 p-2 font-semibold dark:border-white/[0.05] ${i === j ? "bg-orange-500/10 text-orange-600 dark:text-orange-400" : "text-stone-500"}`}>{cell}</td>
                 ))}
               </tr>
@@ -91,7 +92,7 @@ function Recommendations() {
 
   useEffect(() => {
     api.get("/ml/recommendations/my")
-      .then(({ data }) => setRecs(Array.isArray(data.data) ? data.data : []))
+      .then(({ data }) => setRecs(normalizeApiList(data, ["recommendations", "items"])))
       .catch(() => setError(offline))
       .finally(() => setLoading(false));
   }, []);
@@ -214,7 +215,7 @@ function Clustering() {
         action={<div className="flex items-center gap-1.5">{[2, 3, 4].map((n) => <button key={n} className={`btn-sm ${k === n ? "btn-primary" : "btn-secondary"}`} onClick={() => { setK(n); load(n); }}>{n} grupe</button>)}</div>}
       />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {data.clusters.map((cluster) => {
+        {(Array.isArray(data.clusters) ? data.clusters : []).map((cluster) => {
           const color = CLUSTER_COLORS[cluster.cluster] || "#f97316";
           return (
             <div key={cluster.cluster} className="sk-card relative overflow-hidden">
@@ -230,7 +231,7 @@ function Clustering() {
                 <MetricRow label="Raporti humbje / konsum" value={pct(cluster.waste_ratio)} highlight={cluster.waste_ratio > 0.2} />
               </div>
               <div className="mt-4 flex flex-wrap gap-1.5">
-                {cluster.ingredients?.slice(0, 6).map((ingredient) => <span key={ingredient} className="rounded-md bg-stone-100 px-2 py-1 text-[10px] text-stone-500 dark:bg-white/[0.05] dark:text-stone-500">{ingredient}</span>)}
+                {(Array.isArray(cluster.ingredients) ? cluster.ingredients : []).slice(0, 6).map((ingredient) => <span key={ingredient} className="rounded-md bg-stone-100 px-2 py-1 text-[10px] text-stone-500 dark:bg-white/[0.05] dark:text-stone-500">{ingredient}</span>)}
               </div>
             </div>
           );

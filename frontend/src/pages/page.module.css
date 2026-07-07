@@ -1,17 +1,17 @@
 /* Shopping */
 .shopLayout { display:grid; grid-template-columns:300px 1fr; gap:18px; align-items:start; }
-.shopItem   { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid rgba(42,45,37,.4); transition:var(--t); }
+.shopItem { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid rgba(42,45,37,.4); transition:var(--t); }
 .shopItem:last-child { border-bottom:none; }
 .shopItem.purchased { opacity:.4; }
 .shopCheck { width:19px; height:19px; border:1px solid var(--steel); border-radius:3px; flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:var(--t); }
 .shopCheck.done { background:var(--olive); border-color:var(--olive); }
 .shopName { flex:1; font-size:12px; color:var(--cream); }
-.shopQty  { font-size:12px; color:var(--copper); font-family:'Playfair Display',serif; }
-.shopCat  { font-size:10px; color:var(--ash); }
+.shopQty { font-size:12px; color:var(--copper); font-family:'Playfair Display',serif; }
+.shopCat { font-size:10px; color:var(--ash); }
 .purchased .shopName { text-decoration:line-through; }
 
 @media (max-width:1000px) {
-  .shopLayout  { grid-template-columns:1fr; }
+  .shopLayout { grid-template-columns:1fr; }
 }
 
 /* Advanced shopping page */
@@ -98,8 +98,8 @@
   .shopActions { justify-content:flex-start; }
 }
 
-/* Dark Mode overrides (përdorura nga shopping.jsx) */
+/* Dark Mode overrides (përdorura nga Shopping.jsx) */
 :global(.dark) .shopName { color:#e8e4d9; }
-:global(.dark) .shopCat  { color:#6b7260; }
-:global(.dark) .shopQty  { color:#c4622d; }
+:global(.dark) .shopCat { color:#6b7260; }
+:global(.dark) .shopQty { color:#c4622d; }
 :global(.dark) .shopCheck { border-color:#2a2d25; }

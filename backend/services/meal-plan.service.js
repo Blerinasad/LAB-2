@@ -9,7 +9,7 @@ export class MealPlanService {
     if (search) { where.push("mp.title LIKE ?"); params.push(`%${search}%`); }
     if (status) { where.push("mp.status=?"); params.push(status); }
     if (from_date) { where.push("mp.week_start >= ?"); params.push(from_date); }
-    if (to_date) { where.push("mp.week_end <= ?");   params.push(to_date); }
+    if (to_date) { where.push("mp.week_end <= ?"); params.push(to_date); }
 
     const safeSort = ["week_start","title","status","created_at"].includes(sort) ? sort : "week_start";
     const safeOrder = order === "asc" ? "ASC" : "DESC";

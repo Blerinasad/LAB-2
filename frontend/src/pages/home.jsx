@@ -12,19 +12,19 @@ const HStore = () => <svg {...hsvp}><path d="M3 3h14l1 4a2.5 2.5 0 0 1-2.4 2 2.5
 const HTruck = () => <svg {...hsvp}><path d="M2 4.5h10v3H15l3 3.4v3.6h-1.7a2.1 2.1 0 0 1-4.2 0H8.2a2.1 2.1 0 0 1-4.2 0H2v-10Zm10 4.6v3h4.4l.1-.1-2.2-2.9H12ZM6.1 15.6a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8Zm8.1 0a.9.9 0 1 0 0-1.8.9.9 0 0 0 0 1.8Z"/></svg>;
 const HWrench= () => <svg {...hsvp}><path d="M16.7 5.6a4.4 4.4 0 0 1-5.8 5.5L6 16l-2-2 4.9-4.9a4.4 4.4 0 0 1 5.5-5.8L11.9 5.8 14.2 8l2.5-2.4Z"/></svg>;
 const FEATURES = [
-  { icon:<HBox/>, title:"Inventar Inteligjent",  desc:"Gjurmo çdo ingredient, data skadimi dhe sasi. Alerte automatike kur diçka po skadon." },
-  { icon:<HDish/>,  title:"Recetat e Rekomanduara", desc:"ML sugjeron receta bazuar në çfarë ke në frigorifer — zero humbje ushqimore." },
-  { icon:<HCart/>,  title:"Lista Blerjeve",         desc:"Gjenero lista automatikisht nga planet e vakteve. Porosit direkt nga marketi." },
-  { icon:<HChart/>,  title:"Raporte & Analitikë",    desc:"Shiko trendet e konsumimit, humbjen dhe kostot me grafiqe interaktive." },
-  { icon:<HBrain/>,  title:"Machine Learning",       desc:"5 algoritme klasifikimi + regresion + clustering për parashikim rreziku." },
-  { icon:<HBolt/>,  title:"Real-Time",              desc:"Notifikime live, status porosie dhe përditësime inventari pa refresh." },
+  { icon:<HBox/>, title:"Inventar Inteligjent", desc:"Gjurmo çdo ingredient, data skadimi dhe sasi. Alerte automatike kur diçka po skadon." },
+  { icon:<HDish/>, title:"Recetat e Rekomanduara", desc:"ML sugjeron receta bazuar në çfarë ke në frigorifer — zero humbje ushqimore." },
+  { icon:<HCart/>, title:"Lista Blerjeve", desc:"Gjenero lista automatikisht nga planet e vakteve. Porosit direkt nga marketi." },
+  { icon:<HChart/>, title:"Raporte & Analitikë", desc:"Shiko trendet e konsumimit, humbjen dhe kostot me grafiqe interaktive." },
+  { icon:<HBrain/>, title:"Machine Learning", desc:"5 algoritme klasifikimi + regresion + clustering për parashikim rreziku." },
+  { icon:<HBolt/>, title:"Real-Time", desc:"Notifikime live, status porosie dhe përditësime inventari pa refresh." },
 ];
 
 const ROLES = [
-  { icon:<HUser/>, role:"User",    color:"var(--accent)", desc:"Menaxho inventarin, recetat dhe porositë tua." },
-  { icon:<HStore/>, role:"Manager", color:"var(--green)",  desc:"Prano ose refuzo porositë e marketit." },
-  { icon:<HTruck/>, role:"Courier", color:"var(--amber)",  desc:"Merr dhe dorëzo porositë te klientët." },
-  { icon:<HWrench/>, role:"Admin",   color:"var(--blue,#2563eb)", desc:"Kontroll i plotë i sistemit dhe përdoruesve." },
+  { icon:<HUser/>, role:"User", color:"var(--accent)", desc:"Menaxho inventarin, recetat dhe porositë tua." },
+  { icon:<HStore/>, role:"Manager", color:"var(--green)", desc:"Prano ose refuzo porositë e marketit." },
+  { icon:<HTruck/>, role:"Courier", color:"var(--amber)", desc:"Merr dhe dorëzo porositë te klientët." },
+  { icon:<HWrench/>, role:"Admin", color:"var(--blue,#2563eb)", desc:"Kontroll i plotë i sistemit dhe përdoruesve." },
 ];
 
 export default function Home() {

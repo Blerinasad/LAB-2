@@ -128,11 +128,11 @@
            text-[11px] font-semibold tracking-wide border;
   }
   .badge-orange { @apply bg-orange-500/10 text-orange-600 border-orange-200 dark:text-orange-400 dark:border-orange-800/60; }
-  .badge-green  { @apply bg-emerald-500/10 text-emerald-700 border-emerald-200 dark:text-emerald-400 dark:border-emerald-800/60; }
-  .badge-amber  { @apply bg-amber-500/10 text-amber-700 border-amber-200 dark:text-amber-400 dark:border-amber-800/60; }
-  .badge-red    { @apply bg-red-500/10 text-red-600 border-red-200 dark:text-red-400 dark:border-red-900/60; }
-  .badge-stone  { @apply bg-stone-100 text-stone-600 border-stone-200 dark:bg-white/[0.06] dark:text-stone-400 dark:border-white/[0.08]; }
-  .badge-blue   { @apply bg-blue-500/10 text-blue-600 border-blue-200 dark:text-blue-400 dark:border-blue-900/60; }
+  .badge-green { @apply bg-emerald-500/10 text-emerald-700 border-emerald-200 dark:text-emerald-400 dark:border-emerald-800/60; }
+  .badge-amber { @apply bg-amber-500/10 text-amber-700 border-amber-200 dark:text-amber-400 dark:border-amber-800/60; }
+  .badge-red { @apply bg-red-500/10 text-red-600 border-red-200 dark:text-red-400 dark:border-red-900/60; }
+  .badge-stone { @apply bg-stone-100 text-stone-600 border-stone-200 dark:bg-white/[0.06] dark:text-stone-400 dark:border-white/[0.08]; }
+  .badge-blue { @apply bg-blue-500/10 text-blue-600 border-blue-200 dark:text-blue-400 dark:border-blue-900/60; }
 
   /* ── Form inputs ── */
   .sk-input {
@@ -149,7 +149,7 @@
            text-stone-400 mb-1.5 dark:text-stone-500;
   }
   .sk-form-group { @apply mb-4; }
-  .sk-form-row   { @apply grid grid-cols-1 sm:grid-cols-2 gap-3; }
+  .sk-form-row { @apply grid grid-cols-1 sm:grid-cols-2 gap-3; }
 
   /* ── Table ── */
   .sk-table { @apply w-full min-w-[680px] text-[13px]; }
@@ -203,7 +203,7 @@
   .sk-modal-title {
     @apply text-[18px] font-semibold tracking-[-0.02em] text-stone-900 dark:text-stone-100;
   }
-  .sk-modal-body   { @apply px-6 py-5 overflow-y-auto flex-1; }
+  .sk-modal-body { @apply px-6 py-5 overflow-y-auto flex-1; }
   .sk-modal-footer {
     @apply px-4 sm:px-6 pb-5 sm:pb-6 pt-3 flex flex-wrap gap-2 justify-end flex-shrink-0
            border-t border-stone-100 dark:border-white/[0.06];
@@ -248,13 +248,13 @@
 }
 
 /* Animations */
-@keyframes fadeIn  { from { opacity: 0 } to { opacity: 1 } }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
 @keyframes slideUp { from { transform: translateY(12px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
-@keyframes spin    { to { transform: rotate(360deg) } }
+@keyframes spin { to { transform: rotate(360deg) } }
 @keyframes slideIn { from { transform: translateX(16px); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
-@keyframes pulse   { 0%,100% { opacity: 1 } 50% { opacity: .5 } }
+@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: .5 } }
 
 @keyframes sk-pulse {
   0%, 100% { opacity: 1; }
-  50%       { opacity: 0.35; }
+  50% { opacity: 0.35; }
 }

@@ -23,7 +23,7 @@ import os, sys, json, warnings
 warnings.filterwarnings("ignore")
 
 import pandas as pd
-import numpy  as np
+import numpy as np
 import joblib
 
 from sklearn.model_selection import train_test_split, GridSearchCV, cross_val_score
@@ -44,18 +44,18 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 
 BASE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DATA_PATH    = os.path.join(BASE, "datasets", "food_waste_inventory.csv")
-MODELS_DIR   = os.path.join(BASE, "saved_models")
-REPORTS_DIR  = os.path.join(BASE, "ml_reports")
-os.makedirs(MODELS_DIR,  exist_ok=True)
+DATA_PATH = os.path.join(BASE, "datasets", "food_waste_inventory.csv")
+MODELS_DIR = os.path.join(BASE, "saved_models")
+REPORTS_DIR = os.path.join(BASE, "ml_reports")
+os.makedirs(MODELS_DIR, exist_ok=True)
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
 CLF_FEATURES = ["category_id","shelf_life_days","quantity_kg","days_until_expiry",
                  "storage_temp_c","calories_per_100","consumption_frequency"]
-CLF_TARGET   = "risk_code"
+CLF_TARGET = "risk_code"
 REG_FEATURES = ["category_id","shelf_life_days","quantity_kg","storage_temp_c",
                  "calories_per_100","purchase_days_ago","consumption_frequency"]
-REG_TARGET   = "waste_quantity_kg"
+REG_TARGET = "waste_quantity_kg"
 
 
 # ────────────────────────────────────────────────────────────
@@ -85,12 +85,12 @@ def run_classifiers(df):
 
     # Feature Selection
     selector = SelectKBest(f_classif, k=5)
-    X_sel    = selector.fit_transform(X, y)
+    X_sel = selector.fit_transform(X, y)
     selected = [CLF_FEATURES[i] for i in selector.get_support(indices=True)]
     print(f"\nFeature Selection (SelectKBest k=5): {selected}")
     joblib.dump(selector, os.path.join(MODELS_DIR, "clf_selector.pkl"))
 
-    scaler   = StandardScaler()
+    scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X_sel)
     joblib.dump(scaler, os.path.join(MODELS_DIR, "clf_scaler.pkl"))
 
@@ -140,19 +140,19 @@ def run_classifiers(df):
         gs = GridSearchCV(cfg["model"], cfg["params"], cv=5,
                           scoring="f1_weighted", n_jobs=-1, verbose=0)
         gs.fit(X_train, y_train)
-        model   = gs.best_estimator_
-        y_pred  = model.predict(X_test)
+        model = gs.best_estimator_
+        y_pred = model.predict(X_test)
 
-        acc  = float(accuracy_score(y_test, y_pred))
+        acc = float(accuracy_score(y_test, y_pred))
         prec = float(precision_score(y_test, y_pred, average="weighted", zero_division=0))
-        rec  = float(recall_score(y_test, y_pred,    average="weighted", zero_division=0))
-        f1   = float(f1_score(y_test, y_pred,        average="weighted", zero_division=0))
-        cm   = confusion_matrix(y_test, y_pred).tolist()
-        cv   = float(cross_val_score(model, X_scaled, y, cv=5, scoring="f1_weighted").mean())
+        rec = float(recall_score(y_test, y_pred, average="weighted", zero_division=0))
+        f1 = float(f1_score(y_test, y_pred, average="weighted", zero_division=0))
+        cm = confusion_matrix(y_test, y_pred).tolist()
+        cv = float(cross_val_score(model, X_scaled, y, cv=5, scoring="f1_weighted").mean())
 
         results[name] = {
             "accuracy": round(acc,4), "precision": round(prec,4),
-            "recall": round(rec,4), "f1_score":  round(f1,4),
+            "recall": round(rec,4), "f1_score": round(f1,4),
             "cross_val_f1": round(cv,4), "confusion_matrix": cm,
             "best_params": gs.best_params_,
         }
@@ -200,9 +200,9 @@ def run_classifiers(df):
             print(f"  {feat:<25} {imp:.4f}  {bar}")
 
     # Ruaj results JSON
-    results["best_model"]    = best_name
+    results["best_model"] = best_name
     results["features_used"] = selected
-    results["classes"]       = ["low(0)","medium(1)","high(2)"]
+    results["classes"] = ["low(0)","medium(1)","high(2)"]
     with open(os.path.join(MODELS_DIR, "classifier_results.json"), "w") as f:
         json.dump(results, f, indent=2)
 
@@ -219,7 +219,7 @@ def run_clustering(df):
     # Heq etiketat (siç kërkon kursi)
     X_raw = df[CLF_FEATURES].fillna(0).values
     scaler = StandardScaler()
-    X_sc   = scaler.fit_transform(X_raw)
+    X_sc = scaler.fit_transform(X_raw)
 
     # Elbow method
     print("\nElbow Method (Inertia vs K):")
@@ -232,9 +232,9 @@ def run_clustering(df):
 
     # Optimal k=3
     best_k = 3
-    km     = KMeans(n_clusters=best_k, random_state=42, n_init=10)
+    km = KMeans(n_clusters=best_k, random_state=42, n_init=10)
     labels = km.fit_predict(X_sc)
-    df2    = df.copy()
+    df2 = df.copy()
     df2["cluster"] = labels
 
     print(f"\nKMeans me k={best_k} — Inertia: {km.inertia_:.2f}")
@@ -250,7 +250,7 @@ def run_clustering(df):
 
     # PCA vizualizim (tekst)
     pca = PCA(n_components=2)
-    X2  = pca.fit_transform(X_sc)
+    X2 = pca.fit_transform(X_sc)
     print(f"\nPCA — Varianca e shpjeguar: {pca.explained_variance_ratio_.sum()*100:.1f}%")
     print(f"  PC1: {pca.explained_variance_ratio_[0]*100:.1f}%")
     print(f"  PC2: {pca.explained_variance_ratio_[1]*100:.1f}%")
@@ -278,7 +278,7 @@ def run_regression(df):
     X = df[REG_FEATURES].fillna(0).values
     y = df[REG_TARGET].fillna(0).values
 
-    scaler   = StandardScaler()
+    scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
     X_train, X_test, y_train, y_test = train_test_split(
@@ -303,9 +303,9 @@ def run_regression(df):
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
 
-        mae  = float(mean_absolute_error(y_test, y_pred))
+        mae = float(mean_absolute_error(y_test, y_pred))
         rmse = float(np.sqrt(mean_squared_error(y_test, y_pred)))
-        r2   = float(r2_score(y_test, y_pred))
+        r2 = float(r2_score(y_test, y_pred))
 
         reg_results[name] = {"MAE": round(mae,4), "RMSE": round(rmse,4), "R2": round(r2,4)}
         print(f"{name:<30} {mae:>8.4f} {rmse:>8.4f} {r2:>8.4f}")

@@ -1,8 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
-import authReducer from "./auth.slice.js";
-import notifReducer from "./notification.slice.js";
-import toastReducer from "./toast.slice.js";
-import themeReducer from "./theme.slice.js";
+import authReducer from "./authSlice.js";
+import notifReducer from "./notifSlice.js";
+import toastReducer from "./toastSlice.js";
+import themeReducer from "./themeSlice.js";
 
 export const store = configureStore({
   reducer: {

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { DashboardController } from "../controllers/dashboard.controller.js";
 import { AuthMiddleware } from "../middleware/auth.middleware.js";
-import { ActiveMiddleware } from "../middleware/active.middleware.js"
+import { ActiveMiddleware } from "../middleware/role.middleware.js";
 const router = Router();
 const auth = [AuthMiddleware, ActiveMiddleware];
 router.get("/summary", ...auth, DashboardController.getSummary);

@@ -1,20 +1,19 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api.js";
 import { Spinner, Empty, Modal, ConfirmModal, SearchBar, FormGroup, Input, Select, FormRow } from "../components/ui.jsx";
 import { expiryColor, expiryLabel, fmtDate } from "../utils/helpers.js";
-import { useToast } from "../hooks/use-toast.js";
-import PhotoScan from "./photo-scan.jsx";
+import { useToast } from "../hooks/useToast.js";
+import { normalizeApiList } from "../utils/apiData.js";
+import { UNIT_OPTIONS, getDefaultUnitForIngredient, normalizeUnit } from "../utils/units.js";
 
 const LOCS = ["Frigorifer","Ngrirës","Qilar","Kuzhinë","Raft"];
-const EMPTY = { ingredient_id:"", quantity:"", purchase_date:"", expiry_date:"", location:"", notes:"" };
-
-function ExpiryBar({ days }) {
-  const color = days <= 2 ? "bg-red-500" : days <= 5 ? "bg-amber-400" : "bg-emerald-500";
-  return <div className={`absolute top-0 left-0 right-0 h-0.5 ${color}`} />;
-}
+const EMPTY = { ingredient_id:"", quantity:"", unit:"piece", purchase_date:"", expiry_date:"", location:"", notes:"" };
+const PAGE_SIZE = 20;
 
 export default function Inventory() {
   const toast = useToast();
+  const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -25,29 +24,44 @@ export default function Inventory() {
   const [form, setForm] = useState(EMPTY);
   const [confirmDelete, setConfirmDelete] = useState(null); // { id, name }
   const [saving, setSaving] = useState(false);
-  const [photoScan, setPhotoScan] = useState(false);
-  const [viewMode, setViewMode] = useState("grid"); // grid | list
+  const [page, setPage] = useState(1);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const p = new URLSearchParams();
       if (search) p.set("search", search);
+      p.set("page", String(page));
+      p.set("limit", String(PAGE_SIZE));
       const { data } = await api.get(`/inventory?${p}`);
-      setItems(data.data?.items || data.data || []);
+      setItems(normalizeApiList(data, ["items"]));
       setTotal(data.data?.total || 0);
     } finally { setLoading(false); }
-  }, [search]);
+  }, [search, page]);
 
   useEffect(() => { load(); }, [load]);
-  useEffect(() => { api.get("/ingredients").then(({ data }) => setIngredients(data.data || [])); }, []);
+  useEffect(() => {
+    api.get("/ingredients").then((response) => {
+      const payload = response.data?.data ?? response.data;
+      const ingredientList = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.ingredients)
+        ? payload.ingredients
+        : Array.isArray(payload?.rows)
+        ? payload.rows
+        : Array.isArray(payload?.items)
+        ? payload.items
+        : [];
+      setIngredients(ingredientList);
+    }).catch(() => setIngredients([]));
+  }, []);
 
   const openCreate = () => { setEditItem(null); setForm(EMPTY); setModal(true); };
   const openEdit = (item) => {
     setEditItem(item);
     setForm({ ingredient_id: item.ingredient_id, quantity: item.quantity,
       purchase_date: fmtDate(item.purchase_date), expiry_date: fmtDate(item.expiry_date),
-      location: item.location || "", notes: item.notes || "" });
+      unit: normalizeUnit(item.unit), location: item.location || "", notes: item.notes || "" });
     setModal(true);
   };
 
@@ -64,25 +78,25 @@ export default function Inventory() {
   const handleDelete = async (id) => {
     await api.delete(`/inventory/${id}`).catch(() => {});
     toast.warn("Fshirë");
-    load();
+    if (page > 1 && safeItems.length === 1) setPage(page - 1);
+    else load();
   };
 
-  const expiringCount = items.filter(i => i.days_until_expiry <= 3).length;
+  const safeItems = Array.isArray(items) ? items : [];
+  const safeIngredients = Array.isArray(ingredients) ? ingredients : [];
+  const expiringCount = safeItems.filter(i => i.days_until_expiry <= 3).length;
+  const totalPages = Math.max(1, Math.ceil(Number(total || 0) / PAGE_SIZE));
+  const handleIngredientChange = (ingredientId) => {
+    const ingredient = safeIngredients.find((item) => String(item.id) === String(ingredientId));
+    setForm({ ...form, ingredient_id: ingredientId, unit: getDefaultUnitForIngredient(ingredient) });
+  };
 
   return (
     <div>
       {/* Toolbar */}
       <div className="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center">
-        <SearchBar value={search} onChange={setSearch} placeholder="Kërko ingredient..." style={{ flex: 1 }} />
-        <div className="flex items-center gap-1 p-1 bg-stone-100 dark:bg-white/[0.06] rounded-xl border border-stone-200 dark:border-white/[0.08]">
-          {["grid","list"].map((m) => (
-            <button key={m} onClick={() => setViewMode(m)}
-              className={`w-8 h-8 flex items-center justify-center rounded-lg text-[12px] transition-all ${viewMode===m ? "bg-white dark:bg-white/[0.1] text-stone-900 dark:text-stone-100 shadow-sm" : "text-stone-400 hover:text-stone-700 dark:hover:text-stone-300"}`}>
-              {m === "grid" ? "⊞" : "☰"}
-            </button>
-          ))}
-        </div>
-        <button className="btn-secondary mr-2" onClick={() => setPhotoScan(true)}>PhotoScan</button>
+        <SearchBar value={search} onChange={(value) => { setSearch(value); setPage(1); }} placeholder="Kërko ingredient..." style={{ flex: 1 }} />
+        <button className="btn-secondary mr-2" onClick={() => navigate("/photoscan")}>PhotoScan</button>
           <button className="btn-primary w-full sm:w-auto" onClick={openCreate}>
           <svg viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4"><path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd"/></svg>
           Shto Artikull
@@ -97,82 +111,68 @@ export default function Inventory() {
         )}
       </div>
 
-      {loading ? <Spinner center /> : items.length === 0 ? (
+      {loading ? <Spinner center /> : safeItems.length === 0 ? (
         <Empty title="Inventari është bosh" sub='Kliko "Shto Artikull" për të filluar'
           action={
             <div className="flex flex-wrap items-center justify-center gap-2">
-              <button className="btn-secondary" onClick={() => setPhotoScan(true)}>PhotoScan</button>
+              <button className="btn-secondary" onClick={() => navigate("/photoscan")}>PhotoScan</button>
               <button className="btn-primary" onClick={openCreate}>Shto Artikullin e Parë</button>
             </div>
           } />
-      ) : viewMode === "grid" ? (
-        <div className="grid grid-cols-1 min-[430px]:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5">
-          {items.map((item) => {
-            const days = item.days_until_expiry;
-            const color = expiryColor(days);
-            return (
-              <div key={item.id} className="sk-card sk-card-hover relative overflow-hidden group cursor-pointer" onClick={() => openEdit(item)}>
-                <ExpiryBar days={days} />
-                <div className="flex items-start justify-between mb-3 mt-1">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full border" style={{ color, borderColor: `${color}40`, background: `${color}15` }}>
-                    {expiryLabel(days)}
-                  </span>
-                  <button className="opacity-0 group-hover:opacity-100 w-6 h-6 flex items-center justify-center rounded-lg text-stone-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950 transition-all text-xs"
-                    onClick={(e) => { e.stopPropagation(); setConfirmDelete({ id: item.id, name: item.ingredient_name }); }}>Fshi</button>
-                </div>
-                <p className="text-[13px] font-semibold text-stone-800 dark:text-stone-200 mb-1 truncate">{item.ingredient_name}</p>
-                <p className="font-display text-[24px] font-bold text-orange-500 leading-none">{item.quantity}<span className="text-[12px] text-stone-400 dark:text-stone-600 font-sans ml-1">{item.unit}</span></p>
-                <div className="flex items-center justify-between mt-2">
-                  <span className="text-[10px] text-stone-400 dark:text-stone-600">{item.category_name}</span>
-                  <span className="text-[10px] text-stone-400 dark:text-stone-600">{item.location || "–"}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
       ) : (
-        <div className="sk-card overflow-x-auto p-0">
-          <table className="sk-table">
-            <thead><tr><th>Ingredienti</th><th>Sasia</th><th>Vendndodhja</th><th>Skadon</th><th>Kategoria</th><th></th></tr></thead>
-            <tbody>
-              {items.map((item) => {
-                const days = item.days_until_expiry;
-                const color = expiryColor(days);
-                return (
-                  <tr key={item.id}>
-                    <td className="font-semibold text-stone-800 dark:text-stone-200">{item.ingredient_name}</td>
-                    <td className="font-display text-orange-500 font-bold">{item.quantity} {item.unit}</td>
-                    <td className="text-stone-500 dark:text-stone-500">{item.location || "–"}</td>
-                    <td><span className="text-[12px] font-bold" style={{ color }}>{expiryLabel(days)} · {fmtDate(item.expiry_date)}</span></td>
-                    <td><span className="badge badge-stone">{item.category_name}</span></td>
-                    <td>
-                      <div className="flex gap-1">
-                        <button className="btn-ghost btn-xs" onClick={() => openEdit(item)}>Edito</button>
-                        <button className="btn-danger btn-xs" onClick={() => setConfirmDelete({ id: item.id, name: item.ingredient_name })}>Fshi</button>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <>
+          <div className="sk-card overflow-x-auto p-0">
+            <table className="sk-table">
+              <thead><tr><th>Ingredienti</th><th>Sasia</th><th>Vendndodhja</th><th>Skadon</th><th>Kategoria</th><th></th></tr></thead>
+              <tbody>
+                {safeItems.map((item) => {
+                  const days = item.days_until_expiry;
+                  const color = expiryColor(days);
+                  return (
+                    <tr key={item.id}>
+                      <td className="font-semibold text-stone-800 dark:text-stone-200">{item.ingredient_name}</td>
+                      <td className="font-display text-orange-500 font-bold">{item.quantity} {item.unit}</td>
+                      <td className="text-stone-500 dark:text-stone-500">{item.location || "–"}</td>
+                      <td><span className="text-[12px] font-bold" style={{ color }}>{expiryLabel(days)} · {fmtDate(item.expiry_date)}</span></td>
+                      <td><span className="badge badge-stone">{item.category_name}</span></td>
+                      <td>
+                        <div className="flex gap-1">
+                          <button className="btn-ghost btn-xs" onClick={() => openEdit(item)}>Edito</button>
+                          <button className="btn-danger btn-xs" onClick={() => setConfirmDelete({ id: item.id, name: item.ingredient_name })}>Fshi</button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[12px] text-stone-500 dark:text-stone-500">
+              Faqja {page} nga {totalPages} · {safeItems.length} nga {total} artikuj
+            </p>
+            <div className="flex gap-2">
+              <button className="btn-secondary btn-sm" disabled={page <= 1 || loading} onClick={() => setPage((p) => Math.max(1, p - 1))}>Mbrapa</button>
+              <button className="btn-secondary btn-sm" disabled={page >= totalPages || loading} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>Para</button>
+            </div>
+          </div>
+        </>
       )}
 
       {modal && (
         <Modal title={editItem ? "Modifiko Artikullin" : "Shto në Inventar"} onClose={() => setModal(false)}
           footer={<>
             <button className="btn-secondary" onClick={() => setModal(false)}>Anulo</button>
-            <button className="btn-secondary mr-2" onClick={() => setPhotoScan(true)}>PhotoScan</button>
+            <button className="btn-secondary mr-2" onClick={() => navigate("/photoscan")}>PhotoScan</button>
           <button className="btn-primary" form="inv-form" type="submit" disabled={saving}>
               {saving ? "Duke ruajtur..." : editItem ? "Ruaj Ndryshimet" : "Shto Artikullin"}
             </button>
           </>}>
           <form id="inv-form" onSubmit={submit}>
             <FormGroup label="Ingredienti">
-              <Select value={form.ingredient_id} onChange={(e) => setForm({...form, ingredient_id: e.target.value})} required disabled={!!editItem}>
+              <Select value={form.ingredient_id} onChange={(e) => handleIngredientChange(e.target.value)} required disabled={!!editItem}>
                 <option value="">Zgjidh ingredientin...</option>
-                {ingredients.map((i) => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)}
+                {safeIngredients.map((i) => <option key={i.id} value={i.id}>{i.name} ({i.unit})</option>)}
               </Select>
             </FormGroup>
             <FormRow>
@@ -186,6 +186,11 @@ export default function Inventory() {
                 </Select>
               </FormGroup>
             </FormRow>
+            <FormGroup label="Njësia">
+              <Select value={form.unit} onChange={(e) => setForm({...form, unit: e.target.value})}>
+                {UNIT_OPTIONS.map((unit) => <option key={unit.value} value={unit.value}>{unit.label}</option>)}
+              </Select>
+            </FormGroup>
             <FormRow>
               <FormGroup label="Data Blerjes">
                 <Input type="date" value={form.purchase_date} onChange={(e) => setForm({...form, purchase_date: e.target.value})} required />

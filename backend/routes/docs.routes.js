@@ -1,6 +1,6 @@
 import { Router } from "express";
 
-import { openApiSpec } from "../util/openapi.util.js";
+import { openApiSpec } from "../util/openapi.js";
 
 const router = Router();
 

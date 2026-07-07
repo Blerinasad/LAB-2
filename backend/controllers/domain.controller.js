@@ -843,9 +843,9 @@ export class MLController {
       }
 
       // Fetch the most recent cached recipe recommendation from MongoDB
-      const cached = await MLRecommendation.findOne({ 
-        user_id: req.user.id, 
-        model_type: "recipe_recommendation" 
+      const cached = await MLRecommendation.findOne({
+        user_id: req.user.id,
+        model_type: "recipe_recommendation"
       }).sort({ created_at: -1 });
 
       ok(res, cached ? cached.output_data : [], "Recommendations fetched");

@@ -1,13 +1,13 @@
 // ============================================================
-//  util/imagekit.util.js — ImageKit cloud storage
-//  E njëjta strukturë si social_media_app
+// util/imagekit.util.js — ImageKit cloud storage
+// E njëjta strukturë si social_media_app
 // ============================================================
 import ImageKit from "imagekit";
 import dotenv from "dotenv";
 dotenv.config();
 
 export const imagekit = new ImageKit({
-  publicKey: process.env.IMAGEKIT_PUBLIC_KEY  || "",
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY || "",
   privateKey: process.env.IMAGEKIT_PRIVATE_KEY || "",
   urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT || "",
 });

@@ -1,15 +1,12 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
-import { useDispatch } from "react-redux";
 import { connectSocket, disconnectSocket } from "../services/socket.js";
-import tokenStore from "../services/token-store.js";
+import tokenStore from "../services/TokenStore.js";
 import api from "../services/api.js";
-import { addNotif, setUnread } from "../store/notification.slice.js";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const dispatch = useDispatch();
-  const [user,    setUser] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const didBoot = useRef(false);
 
@@ -62,17 +59,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (!user) return;
     const socket = connectSocket(user.id);
-    api.get("/notifications/unread-count")
-      .then(({ data }) => dispatch(setUnread(Number(data.data?.count || 0))))
-      .catch(() => {});
-    const onNotification = (notification) => {
-      dispatch(addNotif(notification));
-    };
-    socket.on("notification:new", onNotification);
-    return () => {
-      socket.off("notification:new", onNotification);
-      disconnectSocket();
-    };
+    return () => disconnectSocket();
   }, [user?.id]);
 
   const login = async (credentials) => {

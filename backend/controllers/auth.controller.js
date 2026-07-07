@@ -1,5 +1,5 @@
 import { AuthService } from "../services/auth.service.js";
-import { sendPasswordReset } from "../util/mailer.util.js";
+import { sendPasswordReset } from "../util/mailer.js";
 
 const COOKIE_OPTS = { httpOnly:true, sameSite:"lax", secure: process.env.NODE_ENV==="production", maxAge: 7*24*60*60*1000 };
 

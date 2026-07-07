@@ -12,7 +12,7 @@ def train_waste_model():
     
     # 1. Try to load historical data from MySQL
     history_query = """
-        SELECT 
+        SELECT
             cl.ingredient_id,
             i.category_id,
             SUM(cl.quantity_used) as consumed_qty,

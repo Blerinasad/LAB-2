@@ -8,7 +8,7 @@ dataset imazhesh apo libreri deep-learning (torch/tensorflow) për këtë qëlli
 
 Identifikimi i KLASIT TË PRODHIMTAR me cilësi të lartë në këtë projekt bëhet
 nga backend-i Node (services/ML.service.js) nëpërmjet OpenAI Vision
-(ose mode demo kur OPENAI_API_KEY mungon) — shih photo-scan.jsx → POST
+(ose mode demo kur OPENAI_API_KEY mungon) — shih PhotoScan.jsx → POST
 /api/ml/detect-food-image.
 
 Ky endpoint plotëson kërkesën e specifikuar që ML-service Python të kishte
@@ -25,14 +25,14 @@ from PIL import Image
 # JO klasifikim i specifikuar saktë i produktit.
 _HUE_BUCKETS = [
     # (hue_min, hue_max, kategoria, kandidatët, ruajtja, jetëgjatësia_ditë)
-    (0,   18,  "Perime",   ["Domate", "Mollë e kuqe", "Spec i kuq"],   "Fridge",  7),
-    (18,  45,  "Perime",   ["Karrota", "Patate", "Portokall"],         "Fridge",  20),
-    (45,  70,  "Fruta",    ["Banane", "Limon"],                        "Counter", 7),
-    (70,  170, "Perime",   ["Mollë jeshile", "Spinaq", "Kastravec", "Speca"], "Fridge", 8),
-    (170, 220, "Bulmet",   ["Qumësht", "Kos"],                         "Fridge",  6),
-    (220, 300, "Drithëra", ["Bukë", "Pasta", "Oriz"],                  "Pantry",  180),
-    (300, 342, "Fruta",    ["Panxhar", "Rrush"],                       "Fridge",  10),
-    (342, 360, "Perime",   ["Domate", "Mollë e kuqe", "Spec i kuq"],   "Fridge",  7),
+    (0, 18, "Perime", ["Domate", "Mollë e kuqe", "Spec i kuq"], "Fridge", 7),
+    (18, 45, "Perime", ["Karrota", "Patate", "Portokall"], "Fridge", 20),
+    (45, 70, "Fruta", ["Banane", "Limon"], "Counter", 7),
+    (70, 170, "Perime", ["Mollë jeshile", "Spinaq", "Kastravec", "Speca"], "Fridge", 8),
+    (170, 220, "Bulmet", ["Qumësht", "Kos"], "Fridge", 6),
+    (220, 300, "Drithëra", ["Bukë", "Pasta", "Oriz"], "Pantry", 180),
+    (300, 342, "Fruta", ["Panxhar", "Rrush"], "Fridge", 10),
+    (342, 360, "Perime", ["Domate", "Mollë e kuqe", "Spec i kuq"], "Fridge", 7),
 ]
 
 
@@ -75,7 +75,7 @@ def detect_food_image(image_bytes: bytes) -> dict:
     detected = candidates[0]
     alternatives = candidates[1:]
 
-    confidence = 35 if low_confidence_signal else 52  # heuristikë e thjeshtë → konfidencë modeste, e ndershme
+    confidence = 35 if low_confidence_signal else 52 # heuristikë e thjeshtë → konfidencë modeste, e ndershme
 
     return {
         "detected_product": detected,
@@ -84,7 +84,7 @@ def detect_food_image(image_bytes: bytes) -> dict:
         "category": category,
         "shelf_life_estimate": f"{shelf_days} ditë",
         "storage_recommendation": storage,
-        "suggested_recipes": [],  # kërkon lidhje me DB-në MySQL; jashtë qëllimit të këtij mikroshërbimi
+        "suggested_recipes": [], # kërkon lidhje me DB-në MySQL; jashtë qëllimit të këtij mikroshërbimi
         "quantity_estimate": None,
         "note": (
             "Vlerësim heuristik bazuar në ngjyrën mesatare të pikselave "

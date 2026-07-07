@@ -13,7 +13,7 @@ export default function Unauthorized() {
         </p>
         <div style={{ display:"flex", gap:10, justifyContent:"center" }}>
           <button className="btn btn-secondary" onClick={() => navigate(-1)}>← Kthehu</button>
-          <button className="btn btn-primary"   onClick={() => navigate("/")}>Dashboard</button>
+          <button className="btn btn-primary" onClick={() => navigate("/")}>Dashboard</button>
         </div>
       </div>
     </div>

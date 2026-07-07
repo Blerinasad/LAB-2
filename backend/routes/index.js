@@ -5,14 +5,15 @@ import ingredientRoutes from "./ingredient.routes.js";
 import categoryRoutes from "./category.routes.js";
 import inventoryRoutes from "./inventory.routes.js";
 import recipeRoutes from "./recipe.routes.js";
-import mealplanRoutes from "./meal-plan.routes.js";
-import shoppingRoutes from "./shopping-list.routes.js";
+import mealplanRoutes from "./mealplan.routes.js";
+import shoppingRoutes from "./shopping.routes.js";
 import notifRoutes from "./notification.routes.js";
 import reportRoutes from "./report.routes.js";
-import marketRoutes from "./marketplace.routes.js";
+import marketRoutes from "./market.routes.js";
 import mlRoutes from "./ml.routes.js";
 import settingsRoutes from "./settings.routes.js";
 import dashboardRoutes from "./dashboard.routes.js";
+import fileRoutes from "./file.routes.js";
 
 const router = Router();
 
@@ -31,5 +32,6 @@ router.use("/marketplace", marketRoutes);
 router.use("/ml", mlRoutes);
 router.use("/settings", settingsRoutes);
 router.use("/dashboard", dashboardRoutes);
+router.use("/files", fileRoutes);
 
 export default router;

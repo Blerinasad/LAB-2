@@ -1,5 +1,10 @@
 import { db } from "../config/db.js";
 
+function normalizeUnit(unit) {
+  const normalized = unit === "cope" ? "piece" : unit;
+  return ["piece","g","kg","ml","l","pack","box","bottle","can","slice"].includes(normalized) ? normalized : "piece";
+}
+
 export class ShoppingListService {
 
   static async getAll(userId, { search, status, sort="created_at", order="desc" } = {}) {
@@ -13,9 +18,9 @@ export class ShoppingListService {
 
     const [rows] = await db.query(`
       SELECT sl.id, sl.title, sl.status, sl.created_at,
-             COUNT(sli.id)                                  AS total_items,
-             SUM(sli.is_purchased)                          AS purchased_items,
-             SUM(sli.is_purchased=0)                        AS pending_items
+             COUNT(sli.id) AS total_items,
+             SUM(sli.is_purchased) AS purchased_items,
+             SUM(sli.is_purchased=0) AS pending_items
       FROM ShoppingLists sl
       LEFT JOIN ShoppingListItems sli ON sli.shopping_list_id = sl.id
       WHERE ${where.join(" AND ")}
@@ -35,7 +40,7 @@ export class ShoppingListService {
              c.name AS category_name
       FROM ShoppingListItems sli
       JOIN Ingredients i ON i.id = sli.ingredient_id
-      JOIN Categories  c ON c.id = i.category_id
+      JOIN Categories c ON c.id = i.category_id
       WHERE sli.shopping_list_id=?
       ORDER BY sli.is_purchased ASC, i.name ASC`, [id]);
 
@@ -75,8 +80,8 @@ export class ShoppingListService {
 
     const [r] = await db.query(
       "INSERT INTO ShoppingListItems (shopping_list_id, ingredient_id, quantity_needed, unit) VALUES (?,?,?,?)",
-      [listId, ingredient_id, quantity_needed, unit.trim()]);
-    return { id: r.insertId, ingredient_id, quantity_needed, unit: unit.trim(), is_purchased: 0 };
+      [listId, ingredient_id, quantity_needed, normalizeUnit(unit.trim())]);
+    return { id: r.insertId, ingredient_id, quantity_needed, unit: normalizeUnit(unit.trim()), is_purchased: 0 };
   }
 
   static async markPurchased(listId, itemId, userId) {

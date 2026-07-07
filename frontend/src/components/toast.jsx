@@ -1,11 +1,11 @@
 import { useSelector, useDispatch } from "react-redux";
-import { removeToast } from "../store/toast.slice.js";
+import { removeToast } from "../store/toastSlice.js";
 
 const CONFIG = {
   success: { icon: "✓", bg: "bg-emerald-50 dark:bg-emerald-950/40", border: "border-emerald-200 dark:border-emerald-800/60", bar: "bg-emerald-500", text: "text-emerald-700 dark:text-emerald-400" },
-  warn: { icon: "!", bg: "bg-amber-50 dark:bg-amber-950/40",   border: "border-amber-200 dark:border-amber-800/60",   bar: "bg-amber-400",   text: "text-amber-700 dark:text-amber-400" },
-  danger: { icon: "✕", bg: "bg-red-50 dark:bg-red-950/40",       border: "border-red-200 dark:border-red-900/60",       bar: "bg-red-500",     text: "text-red-700 dark:text-red-400" },
-  info: { icon: "i", bg: "bg-blue-50 dark:bg-blue-950/40",     border: "border-blue-200 dark:border-blue-900/60",     bar: "bg-blue-500",    text: "text-blue-700 dark:text-blue-400" },
+  warn: { icon: "!", bg: "bg-amber-50 dark:bg-amber-950/40", border: "border-amber-200 dark:border-amber-800/60", bar: "bg-amber-400", text: "text-amber-700 dark:text-amber-400" },
+  danger: { icon: "✕", bg: "bg-red-50 dark:bg-red-950/40", border: "border-red-200 dark:border-red-900/60", bar: "bg-red-500", text: "text-red-700 dark:text-red-400" },
+  info: { icon: "i", bg: "bg-blue-50 dark:bg-blue-950/40", border: "border-blue-200 dark:border-blue-900/60", bar: "bg-blue-500", text: "text-blue-700 dark:text-blue-400" },
 };
 
 export default function Toaster() {

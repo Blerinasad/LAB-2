@@ -1,8 +1,8 @@
 // ============================================================
-//  socket.js
-//  Inicializon dhe ekspozon instancën e Socket.IO në mënyrë
-//  të centralizuar, që shërbimet (marketplace.service.js, cron.util.js, etj.)
-//  ta importojnë pa krijuar varësi rrethore me index.js.
+// socket.js
+// Inicializon dhe ekspozon instancën e Socket.IO në mënyrë
+// të centralizuar, që shërbimet (market.service.js, cron.js, etj.)
+// ta importojnë pa krijuar varësi rrethore me index.js.
 // ============================================================
 import { Server } from "socket.io";
 

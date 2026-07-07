@@ -10,19 +10,31 @@ import { createServer } from "http";
 import { db } from "./config/db.js";
 import { connectMongo } from "./config/mongo.js";
 import routes from "./routes/index.js";
-import docsRoutes from "./routes/docs.routes.js";
 import { initSocket } from "./socket.js";
-import { startExpiryAlertCron } from "./util/cron.util.js";
+import { startExpiryAlertCron } from "./util/cron.js";
+import { openApiSpec } from "./util/openapi.js";
 
 dotenv.config();
 
 const app = express();
 const server = createServer(app);
 
-const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173,http://localhost:5174")
+const configuredOrigins = (
+  process.env.FRONTEND_URL || "http://localhost:5173,http://localhost:5174"
+)
   .split(",")
   .map((origin) => origin.trim())
   .filter(Boolean);
+
+const backendPort = process.env.PORT || "5000";
+const defaultAllowedOrigins = [
+  ...configuredOrigins,
+  `http://localhost:${backendPort}`,
+  `http://127.0.0.1:${backendPort}`,
+  `http://localhost:5173`,
+  `http://localhost:5174`,
+];
+const allowedOrigins = [...new Set(defaultAllowedOrigins.filter(Boolean))];
 
 const corsOptions = {
   origin(origin, callback) {
@@ -34,7 +46,7 @@ const corsOptions = {
 
 // ── Socket.IO ──────────────────────────────────────────────
 // Inicializimi jeton në socket.js për të shmangur varësinë rrethore
-// (marketplace.service.js / cron.util.js importonin më parë `io` direkt nga index.js).
+// (market.service.js / cron.js importonin më parë `io` direkt nga index.js).
 initSocket(server, { origin: allowedOrigins, credentials: true });
 
 // ── Middleware ─────────────────────────────────────────────
@@ -45,7 +57,10 @@ app.use(helmet({ contentSecurityPolicy: false })); // Security headers
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minuta
   max: 10,
-  message: { success: false, message: "Shumë tentativa hyrjeje. Provo pas 15 minutave." },
+  message: {
+    success: false,
+    message: "Shumë tentativa hyrjeje. Provo pas 15 minutave.",
+  },
   standardHeaders: true,
   legacyHeaders: false,
 });
@@ -62,12 +77,52 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 
 // ── Routes ─────────────────────────────────────────────────
-app.get("/", (_, res) => res.json({ success: true, message: "Smart Kitchen API ", docs: "/api/openapi.json" }));
-app.use("/api", docsRoutes);
+app.get("/", (_, res) =>
+  res.json({
+    success: true,
+    message: "Smart Kitchen API ",
+    docs: "/api/openapi.json",
+  }),
+);
+app.get("/api/openapi.json", (_, res) => res.json(openApiSpec));
+app.get("/api/docs", (_, res) =>
+  res.type("html").send(`<!doctype html>
+<html>
+<head>
+  <title>Smart Kitchen API — Swagger UI</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
+</head>
+<body style="margin:0">
+  <div id="swagger-ui"></div>
+  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    SwaggerUIBundle({
+      url: "/api/openapi.json",
+      dom_id: "#swagger-ui",
+      presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+      layout: "BaseLayout",
+      deepLinking: true,
+      tryItOutEnabled: true,
+      requestInterceptor: (req) => {
+        const token = localStorage.getItem("accessToken");
+        if (token) req.headers["Authorization"] = "Bearer " + token;
+        return req;
+      }
+    });
+  </script>
+</body>
+</html>`),
+);
 app.use("/api", routes);
 
 // ── 404 ────────────────────────────────────────────────────
-app.use((req, res) => res.status(404).json({ success: false, message: `Route ${req.path} not found` }));
+app.use((req, res) =>
+  res
+    .status(404)
+    .json({ success: false, message: `Route ${req.path} not found` }),
+);
 
 // ── Error handler ──────────────────────────────────────────
 app.use((err, req, res, next) => {
@@ -94,7 +149,9 @@ const startServer = async () => {
     try {
       await connectMongo();
     } catch (mongoErr) {
-      console.warn(`MongoDB i padisponueshëm (${mongoErr.message}) — vazhdo pa cache MongoDB.`);
+      console.warn(
+        `MongoDB i padisponueshëm (${mongoErr.message}) — vazhdo pa cache MongoDB.`,
+      );
     }
 
     const PORT = process.env.PORT || 5000;

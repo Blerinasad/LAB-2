@@ -9,14 +9,14 @@
 }
 :global(.dark) .toast { background:#1e201a; border-color:#2a2d25; box-shadow:0 4px 20px rgba(0,0,0,.4); }
 .success { border-left-color:#7a9e5a; }
-.warn    { border-left-color:#d4a843; }
-.danger  { border-left-color:#ef4444; }
-.info    { border-left-color:#c4622d; }
-.icon  { font-size:15px; flex-shrink:0; margin-top:1px; }
-.body  { flex:1; min-width:0; }
+.warn { border-left-color:#d4a843; }
+.danger { border-left-color:#ef4444; }
+.info { border-left-color:#c4622d; }
+.icon { font-size:15px; flex-shrink:0; margin-top:1px; }
+.body { flex:1; min-width:0; }
 .title { font-size:12px; font-weight:500; color:#2a2520; }
 :global(.dark) .title { color:#e8e4d9; }
-.msg   { font-size:11px; color:#6b6560; margin-top:2px; }
+.msg { font-size:11px; color:#6b6560; margin-top:2px; }
 :global(.dark) .msg { color:#6b7260; }
 .close { background:none; border:none; color:#9e9890; cursor:pointer; font-size:11px; flex-shrink:0; padding:0 2px; }
 .close:hover { color:#2a2520; }

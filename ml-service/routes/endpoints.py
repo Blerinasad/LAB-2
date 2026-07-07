@@ -1,6 +1,6 @@
 # ============================================================
-#  endpoints.py — FastAPI ML Routes
-#  Smart Kitchen ML Service
+# endpoints.py — FastAPI ML Routes
+# Smart Kitchen ML Service
 # ============================================================
 
 from fastapi import APIRouter, HTTPException, Query, UploadFile, File

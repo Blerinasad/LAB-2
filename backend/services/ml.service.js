@@ -13,17 +13,6 @@ async function mlProxy(method, path, body=null, timeout=15000) {
 }
 
 export class MLService {
-  static async health() {
-    try {
-      return await mlProxy("GET", "/health", null, 5000);
-    } catch {
-      try {
-        return await mlProxy("GET", "/ml/health", null, 5000);
-      } catch {
-        throw { status: 503, message: "ML Service offline" };
-      }
-    }
-  }
 
   static async getMyRecommendations(userId) {
     // Merr inventarin e userit
@@ -153,7 +142,7 @@ export class MLService {
 
   // Normalizon output-in në kontratën e kërkuar nga API:
   // { detected_product, confidence, category, shelf_life_estimate,
-  //   storage_recommendation, suggested_recipes, quantity_estimate, note }
+  // storage_recommendation, suggested_recipes, quantity_estimate, note }
   static async shapeDetectionResult(raw) {
     const suggested_recipes = await MLService.suggestRecipesFor(raw.detected_name);
     return {
@@ -173,71 +162,76 @@ export class MLService {
     };
   }
 
+  static async demoFoodDetection(imageBase64, mimeType="image/jpeg", fallbackReason=null) {
+    const demo = process.env.ENABLE_DEMO_AI !== "false";
+    if (!demo) throw { status:503, message:"PhotoScan AI nuk është i disponueshëm dhe ENABLE_DEMO_AI=false" };
+
+    try {
+      const buf = Buffer.from(imageBase64, "base64");
+      const form = new FormData();
+      form.append("image", new Blob([buf], { type: mimeType }), "photo.jpg");
+      const axios = (await import("axios")).default;
+      const { data: h } = await axios.post(`${ML_URL}/ml/detect-food-image`, form, { timeout: 15000 });
+      if (!h.error) {
+        const days = parseInt(h.shelf_life_estimate) || 7;
+        const expiry = new Date(); expiry.setDate(expiry.getDate() + days);
+        return MLService.shapeDetectionResult({
+          demo_mode: true,
+          detected_name: h.detected_product,
+          alternatives: h.alternatives || [],
+          category: h.category,
+          confidence: h.confidence,
+          quantity_estimate: h.quantity_estimate ?? null,
+          quantity_note: fallbackReason || h.note || "Sasia nuk mund të vlerësohet me besueshmëri nga fotoja.",
+          unit: "kg",
+          shelf_life_days: days,
+          suggested_expiry: expiry.toISOString().slice(0,10),
+          storage_recommendation: h.storage_recommendation || "Fridge",
+          fallback_reason: fallbackReason,
+        });
+      }
+    } catch { /* ML-service offline → vazhdo te fallback-u statik */ }
+
+    const DEMO = [
+      { name:"Domate", category:"Perime", qty:null, unit:"kg", shelf_days:7, storage:"Fridge" },
+      { name:"Qumësht", category:"Bulmet", qty:null, unit:"l", shelf_days:5, storage:"Fridge" },
+      { name:"Mish pule", category:"Mish", qty:null, unit:"kg", shelf_days:3, storage:"Fridge" },
+      { name:"Mollë", category:"Fruta", qty:null, unit:"kg", shelf_days:21, storage:"Fridge" },
+      { name:"Pasta", category:"Drithëra", qty:null, unit:"kg", shelf_days:365, storage:"Pantry" },
+      { name:"Vezë", category:"Bulmet", qty:6, unit:"cope", shelf_days:21, storage:"Fridge" },
+    ];
+    await new Promise(r => setTimeout(r, 250));
+    const product = DEMO[Math.floor(Math.random() * DEMO.length)];
+    const expiry = new Date();
+    expiry.setDate(expiry.getDate() + product.shelf_days);
+    return MLService.shapeDetectionResult({
+      demo_mode: true,
+      detected_name: product.name,
+      alternatives: DEMO.filter(p => p.name !== product.name).slice(0,3).map(p => p.name),
+      category: product.category,
+      confidence: 50,
+      quantity_estimate: product.qty,
+      quantity_note: fallbackReason || (product.qty === null ? "Sasia nuk mund të vlerësohet me besueshmëri nga fotoja." : null),
+      unit: product.unit,
+      shelf_life_days: product.shelf_days,
+      suggested_expiry: expiry.toISOString().slice(0,10),
+      storage_recommendation: product.storage,
+    });
+  }
+
   static async detectFoodImage(imageBase64, mimeType="image/jpeg") {
     const apiKey = process.env.OPENAI_API_KEY || "";
-    const demo = process.env.ENABLE_DEMO_AI !== "false";
 
     // Fallback demo — provo së pari heuristikën REALE të ngjyrave në ML-service (Python),
     // që analizon pikselat e fotos aktuale (deterministe). Lista statike përdoret
     // vetëm si mbrojtje e fundit nëse ML-service është offline.
     if (!apiKey) {
-      if (!demo) throw { status:503, message:"OPENAI_API_KEY mungon dhe ENABLE_DEMO_AI=false" };
-
-      try {
-        const buf = Buffer.from(imageBase64, "base64");
-        const form = new FormData();
-        form.append("image", new Blob([buf], { type: mimeType }), "photo.jpg");
-        const axios = (await import("axios")).default;
-        const { data: h } = await axios.post(`${ML_URL}/ml/detect-food-image`, form, { timeout: 15000 });
-        if (!h.error) {
-          const days = parseInt(h.shelf_life_estimate) || 7;
-          const expiry = new Date(); expiry.setDate(expiry.getDate() + days);
-          return MLService.shapeDetectionResult({
-            demo_mode: true,
-            detected_name: h.detected_product,
-            alternatives: h.alternatives || [],
-            category: h.category,
-            confidence: h.confidence,
-            quantity_estimate: h.quantity_estimate ?? null,
-            quantity_note: h.note || "Sasia nuk mund të vlerësohet me besueshmëri nga fotoja.",
-            unit: "kg",
-            shelf_life_days: days,
-            suggested_expiry: expiry.toISOString().slice(0,10),
-            storage_recommendation: h.storage_recommendation || "Fridge",
-          });
-        }
-      } catch { /* ML-service offline → vazhdo te fallback-u statik */ }
-
-      const DEMO = [
-        { name:"Domate",    category:"Perime",   qty:null, unit:"kg",   shelf_days:7,  storage:"Fridge" },
-        { name:"Qumësht",   category:"Bulmet",   qty:null, unit:"l",    shelf_days:5,  storage:"Fridge" },
-        { name:"Mish pule", category:"Mish",     qty:null, unit:"kg",   shelf_days:3,  storage:"Fridge" },
-        { name:"Mollë",     category:"Fruta",    qty:null, unit:"kg",   shelf_days:21, storage:"Fridge" },
-        { name:"Pasta",     category:"Drithëra", qty:null, unit:"kg",   shelf_days:365,storage:"Pantry" },
-        { name:"Vezë",      category:"Bulmet",   qty:6,    unit:"cope", shelf_days:21, storage:"Fridge" },
-      ];
-      await new Promise(r => setTimeout(r, 400));
-      const product = DEMO[Math.floor(Math.random() * DEMO.length)];
-      const expiry = new Date();
-      expiry.setDate(expiry.getDate() + product.shelf_days);
-      return MLService.shapeDetectionResult({
-        demo_mode: true,
-        detected_name: product.name,
-        alternatives: DEMO.filter(p => p.name !== product.name).slice(0,3).map(p => p.name),
-        category: product.category,
-        confidence: 50, // konfidencë e ndershme — rezultat shembull, jo analizë e fotos
-        quantity_estimate: product.qty,
-        quantity_note: product.qty === null ? "Sasia nuk mund të vlerësohet me besueshmëri nga fotoja." : null,
-        unit: product.unit,
-        shelf_life_days: product.shelf_days,
-        suggested_expiry: expiry.toISOString().slice(0,10),
-        storage_recommendation: product.storage,
-      });
+      return MLService.demoFoodDetection(imageBase64, mimeType, "OPENAI_API_KEY mungon, prandaj u përdor supozimi demo.");
     }
 
     // OpenAI Vision
+    const axios = (await import("axios")).default;
     try {
-      const axios = (await import("axios")).default;
       const res = await axios.post("https://api.openai.com/v1/chat/completions", {
         model: "gpt-4o-mini",
         max_tokens: 200,
@@ -268,58 +262,16 @@ Nëse nuk është ushqim: {"error":"jo ushqim"}` },
       const expiry = new Date();
       expiry.setDate(expiry.getDate() + (json.shelf_life_days || 7));
       return MLService.shapeDetectionResult({ demo_mode:false, ...json, suggested_expiry: expiry.toISOString().slice(0,10) });
-    } catch(e) {
-      if (!demo) throw { status:503, message:"OpenAI Vision nuk u përgjigj dhe ENABLE_DEMO_AI=false" };
-
-      try {
-        const buf = Buffer.from(imageBase64, "base64");
-        const form = new FormData();
-        form.append("image", new Blob([buf], { type: mimeType }), "photo.jpg");
-        const axios = (await import("axios")).default;
-        const { data: h } = await axios.post(`${ML_URL}/ml/detect-food-image`, form, { timeout: 15000 });
-        if (!h.error) {
-          const days = parseInt(h.shelf_life_estimate) || 7;
-          const expiry = new Date(); expiry.setDate(expiry.getDate() + days);
-          return MLService.shapeDetectionResult({
-            demo_mode: true,
-            detected_name: h.detected_product,
-            alternatives: h.alternatives || [],
-            category: h.category,
-            confidence: h.confidence,
-            quantity_estimate: h.quantity_estimate ?? null,
-            quantity_note: h.note || "Sasia nuk mund të vlerësohet me besueshmëri nga fotoja.",
-            unit: "kg",
-            shelf_life_days: days,
-            suggested_expiry: expiry.toISOString().slice(0,10),
-            storage_recommendation: h.storage_recommendation || "Fridge",
-          });
-        }
-      } catch { /* ML-service offline → vazhdo te fallback-u statik */ }
-
-      const DEMO = [
-        { name:"Domate", category:"Perime", qty:null, unit:"kg", shelf_days:7, storage:"Fridge" },
-        { name:"Qumësht", category:"Bulmet", qty:null, unit:"l", shelf_days:5, storage:"Fridge" },
-        { name:"Mish pule", category:"Mish", qty:null, unit:"kg", shelf_days:3, storage:"Fridge" },
-        { name:"Mollë", category:"Fruta", qty:null, unit:"kg", shelf_days:21, storage:"Fridge" },
-        { name:"Pasta", category:"Drithëra", qty:null, unit:"kg", shelf_days:365, storage:"Pantry" },
-        { name:"Vezë", category:"Bulmet", qty:6, unit:"cope", shelf_days:21, storage:"Fridge" },
-      ];
-      const product = DEMO[Math.floor(Math.random() * DEMO.length)];
-      const expiry = new Date();
-      expiry.setDate(expiry.getDate() + product.shelf_days);
-      return MLService.shapeDetectionResult({
-        demo_mode: true,
-        detected_name: product.name,
-        alternatives: DEMO.filter(p => p.name !== product.name).slice(0,3).map(p => p.name),
-        category: product.category,
-        confidence: 50,
-        quantity_estimate: product.qty,
-        quantity_note: product.qty === null ? "Sasia nuk mund të vlerësohet me besueshmëri nga fotoja." : null,
-        unit: product.unit,
-        shelf_life_days: product.shelf_days,
-        suggested_expiry: expiry.toISOString().slice(0,10),
-        storage_recommendation: product.storage,
-      });
+    } catch (e) {
+      if (e.status === 422) throw e;
+      const status = e.response?.status;
+      if ([408, 429, 500, 502, 503, 504].includes(status) || e.code === "ECONNABORTED") {
+        const reason = status === 429
+          ? "OpenAI ktheu 429 (limit/rate). U përdor supozimi demo."
+          : "OpenAI nuk u përgjigj. U përdor supozimi demo.";
+        return MLService.demoFoodDetection(imageBase64, mimeType, reason);
+      }
+      throw { status: status || 500, message: e.response?.data?.error?.message || e.message || "PhotoScan dështoi" };
     }
   }
 

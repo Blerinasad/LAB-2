@@ -1,8 +1,7 @@
 import { Router } from "express";
 import { IngredientController } from "../controllers/ingredient.controller.js";
 import { AuthMiddleware } from "../middleware/auth.middleware.js";
-import { ActiveMiddleware } from "../middleware/active.middleware.js";
-import { RoleMiddleware } from "../middleware/role.middleware.js";
+import { ActiveMiddleware, RoleMiddleware } from "../middleware/role.middleware.js";
 
 const router = Router();
 const all = [AuthMiddleware, ActiveMiddleware];

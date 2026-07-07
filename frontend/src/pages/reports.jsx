@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import api from "../services/api.js";
 import { Card, Spinner, Empty, Badge, Progress } from "../components/ui.jsx";
+import { useAuth } from "../context/auth.context.jsx";
+import { primaryRole } from "../config/roles.js";
+import { normalizeApiList } from "../utils/apiData.js";
 
 const TABS = [
-  { key:"summary",     label:"Përmbledhje" },
-  { key:"waste",       label:"Humbja" },
+  { key:"summary", label:"Përmbledhje" },
+  { key:"waste", label:"Humbja" },
   { key:"consumption", label:"Konsumimi" },
 ];
 
@@ -33,7 +36,138 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-export default function Reports() {
+function StatCard({ label, value, sub, color = "#f97316" }) {
+  return (
+    <div className="sk-card" style={{ borderTop: `2px solid ${color}` }}>
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-600 mb-1">{label}</p>
+      <p className="font-display text-[30px] font-bold tracking-tight" style={{ color }}>{value}</p>
+      {sub && <p className="text-[12px] text-stone-400 dark:text-stone-600 mt-0.5">{sub}</p>}
+    </div>
+  );
+}
+
+function AdminReports() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get("/reports/system")
+      .then((response) => setData(response.data?.data ?? response.data))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <Spinner center />;
+  if (!data) return <Empty title="Nuk ka raporte sistemi" />;
+
+  const users = data.users ?? {};
+  const orders = data.orders ?? {};
+  const marketplace = data.marketplace ?? {};
+  const ordersByStatus = normalizeApiList(data.orders_by_status, ["orders_by_status"]);
+  const auditSummary = normalizeApiList(data.audit_summary, ["audit_summary"]);
+  const systemActivity = normalizeApiList(data.system_activity, ["system_activity"]);
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard label="Total Users" value={users.total_users ?? 0} sub={`${users.active_users ?? 0} aktiv / ${users.inactive_users ?? 0} joaktiv`} />
+        <StatCard label="Total Orders" value={orders.total_orders ?? 0} sub={`${Number(orders.total_revenue ?? 0).toFixed(2)}€ total`} color="#3b82f6" />
+        <StatCard label="Marketplace Activity" value={marketplace.orders_today ?? 0} sub={`${marketplace.active_stores ?? 0} dyqane aktive`} color="#10b981" />
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
+        <Card title="Orders By Status" sub="Raport global i porosive">
+          {ordersByStatus.length === 0 ? <Empty title="Nuk ka porosi" /> : (
+            <div className="space-y-2">
+              {ordersByStatus.map((row) => (
+                <div key={row.status} className="flex items-center justify-between border-b border-stone-100 py-2 last:border-none dark:border-white/[0.05]">
+                  <Badge variant="stone">{row.status}</Badge>
+                  <span className="font-semibold text-stone-800 dark:text-stone-200">{row.total}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+
+        <Card title="Audit Summary" sub="Veprimet më të shpeshta">
+          {auditSummary.length === 0 ? <Empty title="Nuk ka audit logs" /> : (
+            <div className="space-y-2">
+              {auditSummary.map((row) => (
+                <div key={row.action} className="flex items-center justify-between border-b border-stone-100 py-2 last:border-none dark:border-white/[0.05]">
+                  <span className="text-[13px] font-medium text-stone-700 dark:text-stone-300">{row.action}</span>
+                  <span className="text-orange-500 font-semibold">{row.total}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
+
+      <Card title="System Activity" sub="Aktiviteti i fundit në sistem">
+        {systemActivity.length === 0 ? <Empty title="Nuk ka aktivitet" /> : (
+          <div className="overflow-x-auto">
+            <table className="sk-table">
+              <thead><tr><th>Action</th><th>Entity</th><th>User</th><th>Data</th></tr></thead>
+              <tbody>
+                {systemActivity.map((row) => (
+                  <tr key={row.id}>
+                    <td className="font-semibold text-stone-800 dark:text-stone-200">{row.action}</td>
+                    <td>{row.entity}{row.entity_id ? ` #${row.entity_id}` : ""}</td>
+                    <td className="text-stone-500 dark:text-stone-500">{row.email || "System"}</td>
+                    <td className="text-stone-400 dark:text-stone-600">{row.created_at?.slice(0,16).replace("T"," ")}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function ManagerReports() {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get("/reports/manager")
+      .then((response) => setData(response.data?.data ?? response.data))
+      .catch(() => setData(null))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if (loading) return <Spinner center />;
+  if (!data) return <Empty title="Nuk ka raporte manageri" />;
+
+  const orders = data.orders ?? {};
+  const marketplace = data.marketplace ?? {};
+  const ordersByStatus = normalizeApiList(data.orders_by_status, ["orders_by_status"]);
+
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard label="Porosi në pritje" value={orders.pending_orders ?? 0} sub={`${orders.total_orders ?? 0} gjithsej`} />
+        <StatCard label="Porosi aktive" value={orders.active_orders ?? 0} color="#3b82f6" />
+        <StatCard label="Marketplace" value={marketplace.orders_today ?? 0} sub="porosi sot" color="#10b981" />
+      </div>
+      <Card title="Orders By Status" sub="Raport i porosive të marketplace">
+        {ordersByStatus.length === 0 ? <Empty title="Nuk ka porosi" /> : (
+          <div className="space-y-2">
+            {ordersByStatus.map((row) => (
+              <div key={row.status} className="flex items-center justify-between border-b border-stone-100 py-2 last:border-none dark:border-white/[0.05]">
+                <Badge variant="stone">{row.status}</Badge>
+                <span className="font-semibold text-stone-800 dark:text-stone-200">{row.total}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
+    </div>
+  );
+}
+
+function UserReports() {
   const [data, setData] = useState(null);
   const [waste, setWaste] = useState([]);
   const [consum, setConsum] = useState([]);
@@ -46,15 +180,15 @@ export default function Reports() {
     setLoading(true);
     const p = {};
     if (from) p.from_date = from;
-    if (to) p.to_date   = to;
+    if (to) p.to_date = to;
     Promise.all([
       api.get("/reports/summary", { params: p }),
-      api.get("/reports/waste",   { params: p }),
+      api.get("/reports/waste", { params: p }),
       api.get("/reports/consumption", { params: p }),
     ]).then(([s,w,c]) => {
       setData(s.data.data);
-      setWaste(w.data.data || []);
-      setConsum(c.data.data || []);
+      setWaste(normalizeApiList(w.data, ["waste"]));
+      setConsum(normalizeApiList(c.data, ["consumption"]));
     }).finally(() => setLoading(false));
   };
 
@@ -62,8 +196,8 @@ export default function Reports() {
 
   const inv = data?.inventory ?? {};
   const waste_ = data?.waste ?? {};
-  const top = data?.top_ingredients ?? [];
-  const weekly = (data?.weekly_waste ?? []).map((x) => ({ date: String(x.date).slice(5,10), kg: Number(x.kg || 0) }));
+  const top = Array.isArray(data?.top_ingredients) ? data.top_ingredients : [];
+  const weekly = (Array.isArray(data?.weekly_waste) ? data.weekly_waste : []).map((x) => ({ date: String(x.date).slice(5,10), kg: Number(x.kg || 0) }));
   const maxTop = top[0]?.total_used || 1;
 
   const REASON_MAP = { expired:"badge-red", spoiled:"badge-amber", overcooked:"badge-stone", other:"badge-stone" };
@@ -105,8 +239,8 @@ export default function Reports() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
                 {[
                   { label:"Total Artikuj", value: inv.total_items??0, sub:"në inventar", color:"#f97316" },
-                  { label:"Po Skadojnë",   value: inv.expiring_soon??0, sub:"brenda 3 ditëve", color:"#f59e0b" },
-                  { label:"Humbja",        value: `${Number(waste_.total_kg??0).toFixed(1)}kg`, sub:`${waste_.events??0} ngjarje`, color:"#ef4444" },
+                  { label:"Po Skadojnë", value: inv.expiring_soon??0, sub:"brenda 3 ditëve", color:"#f59e0b" },
+                  { label:"Humbja", value: `${Number(waste_.total_kg??0).toFixed(1)}kg`, sub:`${waste_.events??0} ngjarje`, color:"#ef4444" },
                 ].map((s) => (
                   <div key={s.label} className="sk-card" style={{ borderTop: `2px solid ${s.color}` }}>
                     <p className="text-[11px] font-semibold uppercase tracking-widest text-stone-400 dark:text-stone-600 mb-1">{s.label}</p>
@@ -203,4 +337,12 @@ export default function Reports() {
       )}
     </div>
   );
+}
+
+export default function Reports() {
+  const { user } = useAuth();
+  const role = primaryRole(user);
+  if (role === "Admin") return <AdminReports />;
+  if (role === "Manager") return <ManagerReports />;
+  return <UserReports />;
 }

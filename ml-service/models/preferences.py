@@ -114,7 +114,7 @@ def classify_preference(user_id: int):
         
     model, le = load_preference_model()
     
-    X_pred = pd.DataFrame([[meat_ratio, gluten_ratio, carb_ratio, veg_ratio]], 
+    X_pred = pd.DataFrame([[meat_ratio, gluten_ratio, carb_ratio, veg_ratio]],
                           columns=['meat_ratio', 'gluten_ratio', 'carb_ratio', 'veg_ratio'])
     
     pred_encoded = model.predict(X_pred)[0]

@@ -11,7 +11,7 @@
 .brand { padding:24px 20px 18px; border-bottom:1px solid #e2ddd6; }
 :global(.dark) .brand { border-bottom-color:#2a2d25; }
 .brandName { font-family:'Playfair Display',serif; font-size:18px; color:#c4622d; line-height:1.2; }
-.brandSub  { font-size:9px; color:#9e9890; letter-spacing:2px; text-transform:uppercase; margin-top:3px; display:block; }
+.brandSub { font-size:9px; color:#9e9890; letter-spacing:2px; text-transform:uppercase; margin-top:3px; display:block; }
 :global(.dark) .brandSub { color:#3d4135; }
 
 .userBlock { display:flex; align-items:center; gap:10px; padding:14px 20px; border-bottom:1px solid #e2ddd6; }
@@ -35,7 +35,7 @@
   background:#c4622d; color:#0e0f0c; font-size:9px; font-weight:700;
   border-radius:10px; padding:1px 6px; min-width:18px; text-align:center; margin-left:auto;
 }
-.navIcon  { font-size:14px; width:18px; text-align:center; flex-shrink:0; }
+.navIcon { font-size:14px; width:18px; text-align:center; flex-shrink:0; }
 .navLabel { flex:1; }
 
 .sidebarFooter { padding:14px 20px; border-top:1px solid #e2ddd6; }

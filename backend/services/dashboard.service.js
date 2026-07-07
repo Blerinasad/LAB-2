@@ -1,38 +1,113 @@
-import { DashboardRepository } from "../repositories/dashboard.repository.js";
+import { db } from "../config/db.js";
 
 export class DashboardService {
 
   static async getSummary(userId, roles=[]) {
     const isAdmin = roles.includes("Admin");
-    const parts = await DashboardRepository.getSummaryParts(userId, isAdmin);
+    const isMgr = isAdmin || roles.includes("Manager");
+
+    // Inventory stats
+    const [[inv]] = await db.query(`
+      SELECT
+        COUNT(*) AS total_items,
+        SUM(quantity) AS total_quantity,
+        SUM(expiry_date < CURDATE()) AS expired,
+        SUM(DATEDIFF(expiry_date,CURDATE()) BETWEEN 0 AND 3) AS expiring_soon,
+        SUM(DATEDIFF(expiry_date,CURDATE()) BETWEEN 0 AND 7) AS expiring_week,
+        SUM(quantity < 0.5) AS low_stock
+      FROM InventoryItems WHERE user_id=?`, [userId]);
+
+    // Recipes
+    const [[rec]] = await db.query(
+      "SELECT COUNT(*) AS total FROM Recipes WHERE is_public=1 OR created_by=?", [userId]);
+
+    // Meal plans
+    const [[mp]] = await db.query(
+      "SELECT COUNT(*) AS active FROM MealPlans WHERE user_id=? AND status='active'", [userId]);
+
+    // Shopping lists
+    const [[sl]] = await db.query(`
+      SELECT COUNT(DISTINCT sl.id) AS active_lists,
+             SUM(sli.is_purchased=0) AS pending_items
+      FROM ShoppingLists sl
+      LEFT JOIN ShoppingListItems sli ON sli.shopping_list_id=sl.id
+      WHERE sl.user_id=? AND sl.status='active'`, [userId]);
+
+    // Orders
+    const [[ord]] = await db.query(
+      "SELECT COUNT(*) AS total, SUM(status='pending') AS pending FROM StoreOrders WHERE user_id=?", [userId]);
+
+    // Waste estimate
+    const [[waste]] = await db.query(
+      "SELECT COALESCE(SUM(quantity_wasted),0) AS total_kg FROM WasteLog WHERE user_id=?", [userId]);
+
+    // Notifications unread
+    const [[notif]] = await db.query(
+      "SELECT COUNT(*) AS unread FROM Notifications WHERE user_id=? AND is_read=0", [userId]);
+
+    let adminStats = null;
+    if (isAdmin) {
+      const [[users]] = await db.query("SELECT COUNT(*) AS total, SUM(is_active) AS active FROM Users");
+      const [[orders]] = await db.query("SELECT COUNT(*) AS total, SUM(total_amount) AS revenue FROM StoreOrders WHERE status='delivered'");
+      adminStats = { users, orders };
+    }
 
     return {
       inventory: {
-        total_items: Number(parts.inventory.total_items || 0),
-        total_quantity: Number(parts.inventory.total_quantity || 0),
-        expired: Number(parts.inventory.expired || 0),
-        expiring_soon: Number(parts.inventory.expiring_soon || 0),
-        expiring_week: Number(parts.inventory.expiring_week || 0),
-        low_stock: Number(parts.inventory.low_stock || 0),
+        total_items: Number(inv.total_items || 0),
+        total_quantity: Number(inv.total_quantity || 0),
+        expired: Number(inv.expired || 0),
+        expiring_soon: Number(inv.expiring_soon || 0),
+        expiring_week: Number(inv.expiring_week || 0),
+        low_stock: Number(inv.low_stock || 0),
       },
-      recipes: { total: Number(parts.recipes.total || 0) },
-      meal_plans: { active: Number(parts.mealPlans.active || 0) },
-      shopping: {
-        active_lists: Number(parts.shopping.active_lists || 0),
-        pending_items: Number(parts.shopping.pending_items || 0),
-      },
-      orders: { total: Number(parts.orders.total || 0), pending: Number(parts.orders.pending || 0) },
-      waste: { total_kg: Number(parts.waste.total_kg || 0).toFixed(2) },
-      notifications: { unread: Number(parts.notifications.unread || 0) },
-      admin: parts.admin,
+      recipes: { total: Number(rec.total || 0) },
+      meal_plans: { active: Number(mp.active || 0) },
+      shopping: { active_lists: Number(sl.active_lists || 0), pending_items: Number(sl.pending_items || 0) },
+      orders: { total: Number(ord.total || 0), pending: Number(ord.pending || 0) },
+      waste: { total_kg: Number(waste.total_kg || 0).toFixed(2) },
+      notifications: { unread: Number(notif.unread || 0) },
+      admin: adminStats,
     };
   }
 
   static async getActivity(userId, limit=10) {
-    return DashboardRepository.getActivity(userId, limit);
+    const [rows] = await db.query(`
+      SELECT 'audit' AS source, action AS type, entity AS label,
+             created_at, NULL AS extra
+      FROM AuditLogs WHERE user_id=?
+      UNION ALL
+      SELECT 'notif', type, title, created_at, message
+      FROM Notifications WHERE user_id=?
+      ORDER BY created_at DESC LIMIT ?`,
+      [userId, userId, Number(limit)]);
+    return rows;
   }
 
   static async getCharts(userId) {
-    return DashboardRepository.getCharts(userId);
+    // Inventory by category
+    const [byCategory] = await db.query(`
+      SELECT c.name AS category, COUNT(ii.id) AS items, SUM(ii.quantity) AS total_qty
+      FROM InventoryItems ii
+      JOIN Ingredients i ON i.id=ii.ingredient_id
+      JOIN Categories c ON c.id=i.category_id
+      WHERE ii.user_id=?
+      GROUP BY c.id, c.name ORDER BY items DESC`, [userId]);
+
+    // Expiry timeline (next 14 days)
+    const [expiry] = await db.query(`
+      SELECT DATEDIFF(expiry_date, CURDATE()) AS days_left, COUNT(*) AS count
+      FROM InventoryItems
+      WHERE user_id=? AND expiry_date >= CURDATE() AND DATEDIFF(expiry_date,CURDATE()) <= 14
+      GROUP BY days_left ORDER BY days_left ASC`, [userId]);
+
+    // Orders per month (last 6)
+    const [orders] = await db.query(`
+      SELECT DATE_FORMAT(created_at,'%Y-%m') AS month,
+             COUNT(*) AS count, SUM(total_amount) AS total
+      FROM StoreOrders WHERE user_id=?
+      GROUP BY month ORDER BY month DESC LIMIT 6`, [userId]);
+
+    return { by_category: byCategory, expiry_timeline: expiry, orders_monthly: orders };
   }
 }

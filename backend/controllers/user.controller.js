@@ -1,4 +1,4 @@
-// user.controller.js — thin controller, zero business logic
+// User.controller.js — thin controller, zero business logic
 import { UserService } from "../services/user.service.js";
 
 export class UserController {

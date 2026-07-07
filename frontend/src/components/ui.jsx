@@ -11,7 +11,7 @@ export function Empty({ icon = "○", title, sub, action }) {
     <div className="flex flex-col items-center justify-center py-14 text-center px-6">
       <div className="text-5xl mb-4 opacity-20 select-none">{icon}</div>
       <p className="text-[15px] font-semibold text-stone-500 dark:text-stone-500 mb-1">{title}</p>
-      {sub    && <p className="text-[13px] text-stone-400 dark:text-stone-600 mt-1">{sub}</p>}
+      {sub && <p className="text-[13px] text-stone-400 dark:text-stone-600 mt-1">{sub}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   );
@@ -24,7 +24,7 @@ export function Card({ title, sub, action, children, className = "" }) {
         <div className="flex items-start justify-between mb-4">
           <div className="min-w-0">
             {title && <p className="font-display text-[15px] font-semibold tracking-tight text-stone-900 dark:text-stone-100">{title}</p>}
-            {sub   && <p className="text-[12px] text-stone-400 dark:text-stone-600 mt-0.5">{sub}</p>}
+            {sub && <p className="text-[12px] text-stone-400 dark:text-stone-600 mt-0.5">{sub}</p>}
           </div>
           {action && <div className="flex-shrink-0 ml-3">{action}</div>}
         </div>
@@ -97,7 +97,7 @@ export function SearchBar({ value, onChange, placeholder = "Kërko...", style })
 export function FormGroup({ label, children }) {
   return <div className="sk-form-group"><label className="sk-label">{label}</label>{children}</div>;
 }
-export function Input(props)  { return <input className="sk-input" {...props} />; }
+export function Input(props) { return <input className="sk-input" {...props} />; }
 export function Select({ children, ...props }) { return <select className="sk-input" {...props}>{children}</select>; }
 export function Textarea(props) { return <textarea className="sk-input" rows={4} {...props} />; }
 export function FormRow({ children }) { return <div className="sk-form-row">{children}</div>; }
@@ -111,7 +111,7 @@ export function ConfirmModal({ title = "A je i sigurt?", message, confirmText = 
         {message && <p style={{ fontSize:13, color:"var(--text-3)", marginBottom:20, lineHeight:1.6 }}>{message}</p>}
         <div style={{ display:"flex", gap:10, justifyContent:"flex-end" }}>
           <button className="btn btn-secondary" onClick={onCancel}>Anulo</button>
-          <button className="btn btn-danger"    onClick={onConfirm}>{confirmText}</button>
+          <button className="btn btn-danger" onClick={onConfirm}>{confirmText}</button>
         </div>
       </div>
     </div>
